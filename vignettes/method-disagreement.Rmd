@@ -1,0 +1,59 @@
+---
+title: "When XAI methods disagree"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{When XAI methods disagree}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```
+
+> **Status.** The ingestion layer is phase F1 and the heterogeneity layer is
+> phase F4. This vignette fixes the interface.
+
+A low `tau_x` is not a failure of the consensus. It is a finding about the
+methods.
+
+When predictors are correlated, marginal importance measures and conditional
+ones answer different questions, and their rankings separate. Averaging them
+into a single ordering destroys exactly the information that mattered.
+`judge_clusters()` looks for that separation instead of hiding it.
+
+## Building the panel
+
+```{r}
+library(rankimp)
+
+J <- importance_judges(
+  fit_list = list(rf = rf_fit, xgb = xgb_fit),
+  methods  = c("permutation", "shap", "mdi"),
+  weights  = c(permutation = 1, shap = 1, mdi = 0.5)
+)
+```
+
+## Is there one panel, or two?
+
+```{r}
+cr <- consensus_rank(J)
+cr$tau        # low: the panel does not agree
+
+het <- judge_clusters(J, k = NULL)
+autoplot(het) # MDS of the judges in Kemeny-Snell space
+```
+
+If the clusters line up with the marginal/conditional distinction, the honest
+report is two consensus rankings with an explanation, not one consensus ranking
+with a caveat.
+
+```{r}
+lapply(split(seq_len(nrow(J)), het$cluster), function(rows) consensus_rank(J[rows, ]))
+```
+
+## Why this is a result and not a problem
+
+The disagreement is diagnostic of the correlation structure of the predictors.
+A panel that agrees tells you the variables are separable; a panel that splits
+tells you which variables are entangled, and with what. Both are reportable.

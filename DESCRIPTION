@@ -1,0 +1,31 @@
+Package: rankimp
+Title: Consensus Ranking of Variable Importance with Uncertainty
+Version: 0.0.0.9000
+Authors@R:
+    person("Agostino", "Gnasso", , "gn.agostino@gmail.com", role = c("aut", "cre"))
+Description: Variable importance rankings depend on the method, the random
+    seed and the resample used to compute them. This package treats every
+    source of importance as a judge expressing a ranking over the
+    predictors, and synthesises those rankings into a Kemeny median
+    ranking with ties. Uncertainty about the consensus is quantified
+    through bootstrap rank confidence sets, top-k probabilities and
+    clustering of disagreeing judges.
+License: MIT + file LICENSE
+Depends:
+    R (>= 3.5)
+Imports:
+    ConsRank,
+    ggplot2,
+    stats,
+    tibble
+Suggests:
+    covr,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder:
+    knitr
+Config/testthat/edition: 3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 8.0.0

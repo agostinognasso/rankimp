@@ -1,0 +1,62 @@
+---
+title: "Robustly important variables in credit scoring"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Robustly important variables in credit scoring}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```
+
+> **Status.** Placeholder. The case study needs the ingestion layer (F1) and the
+> inferential layer (F3).
+
+A lender must be able to say which characteristics drive a decision, and must be
+able to defend the claim. "Our random forest's permutation importance ranked
+income first" does not survive the obvious follow-up: *would a different method,
+or a different seed, have said the same?*
+
+This vignette answers that question for a credit portfolio, using judges drawn
+along all four axes at once — method, seed, fold, and model family.
+
+## The panel
+
+```{r}
+library(rankimp)
+
+J <- importance_judges(
+  fit_list  = list(rf = rf_fit, xgb = xgb_fit, glmnet = glm_fit),
+  methods   = c("permutation", "shap", "mdi"),
+  resamples = rsample::vfold_cv(loans, v = 10),
+  seeds     = 1:5,
+  weights   = c(permutation = 1, shap = 1, mdi = 0.5)
+)
+```
+
+Three model families, three methods, ten folds, five seeds: 450 judges. Any one
+of them, reported alone, would be a publishable-looking result.
+
+## What survives
+
+```{r}
+cr <- consensus_rank(J)
+cb <- rank_confsets(cr, n_boot = 1000)
+
+rank_select(cb, threshold = 10)
+```
+
+## Cross-model consensus as a robustness check
+
+The interesting comparison is between the consensus *within* a model family and
+the consensus *across* families. Variables that rank highly for every family are
+substantively important. Variables that rank highly only for the gradient
+boosting fit are telling you about the fit, not about credit risk.
+
+## Connecting back to the forest
+
+`proxima` asks how the forest represents the borrowers; `rankimp` asks which
+variables drive that representation; `e2tree` renders the answer as a single
+tree. The three vignettes use the same portfolio on purpose.

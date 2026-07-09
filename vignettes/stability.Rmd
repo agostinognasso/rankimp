@@ -1,0 +1,68 @@
+---
+title: "How stable is a variable importance ranking?"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How stable is a variable importance ranking?}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```
+
+> **Status.** The inferential layer is phase F3. This vignette fixes the
+> interface and states what the layer has to deliver.
+
+Two sources of instability, and they are not the same thing.
+
+**Intrinsic.** Refit the same model on the same data with a different seed and
+the ranking moves. This is variability of the *estimator*, and multi-replicate
+judges measure it.
+
+**Data.** Refit on a different fold or bootstrap sample and the ranking moves
+again. This is variability of the *estimand*, and multi-fold judges measure it.
+
+A ranking that survives the first but not the second is telling you the sample
+is too small to support the claim, not that the model is unstable.
+
+## Rank confidence sets
+
+```{r}
+library(rankimp)
+
+J <- importance_judges(
+  fit_list  = list(rf = rf_fit),
+  methods   = "permutation",
+  resamples = rsample::vfold_cv(df, v = 10)
+)
+
+cr <- consensus_rank(J)
+cb <- rank_confsets(cr, n_boot = 500, level = 0.95)
+
+autoplot(cb)
+```
+
+The plot shows each variable at its consensus rank with the interval of ranks it
+plausibly occupies. Overlapping intervals mean the two variables cannot be
+ordered on this evidence — which is the statement most importance plots refuse
+to make.
+
+## Probability of membership in the top k
+
+```{r}
+prob_topk(cb, k = 5)
+```
+
+"`income` is the third most important variable" is a claim that cannot be
+falsified. "`income` is in the top five with probability 0.97" can be.
+
+## Selection with a guarantee
+
+```{r}
+rank_select(cb, threshold = 10)
+```
+
+A variable is selected only when its whole confidence set sits above the
+threshold. Selecting on the point estimate would ignore that the ranking was
+estimated in the first place.
