@@ -29,10 +29,15 @@ out-of-bag count for more than an impurity-based one.}
 \item{...}{Unused.}
 }
 \value{
-An object of class \code{consensus_rank}, a list with elements
-\code{ranking} (a tibble of variable and consensus rank), \code{tau} (the average
-\code{tau_x} agreement between the consensus and the judges), \code{consensus_all}
-(every optimal consensus found, one per row), and the settings used.
+An object of class \code{consensus_rank}, a list with elements \code{ranking}
+(a tibble of variable and consensus rank), \code{tau} (the average \code{tau_x}
+agreement between the consensus and the judges), \code{consensus_all} (every
+optimal consensus found, one per row), \code{judges} and \code{weights} (the panel
+as supplied), and the settings used.
+
+The panel is kept because the consensus alone is a point estimate:
+\code{\link[=rank_confsets]{rank_confsets()}} resamples the judges to put an interval around it, and it
+cannot do that from a ranking.
 }
 \description{
 Given \code{K} judges, each expressing a ranking over the same \code{p} variables,

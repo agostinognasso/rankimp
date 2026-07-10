@@ -32,10 +32,15 @@
 #'   `"decor"`.
 #' @param ties Keep ties in the consensus ranking.
 #'
-#' @return An object of class `consensus_rank`, a list with elements
-#'   `ranking` (a tibble of variable and consensus rank), `tau` (the average
-#'   `tau_x` agreement between the consensus and the judges), `consensus_all`
-#'   (every optimal consensus found, one per row), and the settings used.
+#' @return An object of class `consensus_rank`, a list with elements `ranking`
+#'   (a tibble of variable and consensus rank), `tau` (the average `tau_x`
+#'   agreement between the consensus and the judges), `consensus_all` (every
+#'   optimal consensus found, one per row), `judges` and `weights` (the panel
+#'   as supplied), and the settings used.
+#'
+#'   The panel is kept because the consensus alone is a point estimate:
+#'   [rank_confsets()] resamples the judges to put an interval around it, and it
+#'   cannot do that from a ranking.
 #'
 #' @examples
 #' judges <- rbind(
@@ -70,15 +75,11 @@ consensus_rank <- function(x,
 
   engine <- resolve_algorithm(algorithm, p)
 
-  fit <- withCallingHandlers(
-    ConsRank::consrank(
-      X = x,
-      wk = if (is.null(weights)) NULL else matrix(weights, ncol = 1L),
-      ps = FALSE,
-      algorithm = engine,
-      full = !ties
-    ),
-    message = function(m) invisible(NULL)
+  fit <- quiet_consrank(
+    X = x,
+    wk = if (is.null(weights)) NULL else matrix(weights, ncol = 1L),
+    algorithm = engine,
+    full = !ties
   )
 
   consensus_all <- as.matrix(fit$Consensus)
@@ -93,6 +94,8 @@ consensus_rank <- function(x,
       )[order(best), ],
       tau = as.numeric(fit$Tau)[1L],
       consensus_all = consensus_all,
+      judges = x,
+      weights = weights,
       n_judges = k,
       n_items = p,
       algorithm = engine,
@@ -102,6 +105,31 @@ consensus_rank <- function(x,
     ),
     class = "consensus_rank"
   )
+}
+
+#' Call ConsRank without its running commentary
+#'
+#' `ConsRank::consrank()` reports progress in two different ways. Branch counts
+#' are printed when `ps = TRUE`, and are silenced by `ps = FALSE`. Degenerate
+#' panels — a combined input matrix of zeros, for instance, where every ranking
+#' is a median — announce themselves with `print()` regardless. `print()` writes
+#' to stdout and no condition handler can intercept it, so the output has to be
+#' captured; `suppressMessages()` covers the conditions the package does raise.
+#'
+#' An earlier version of this function used
+#' `withCallingHandlers(message = function(m) invisible(NULL))`, which suppresses
+#' nothing at all: a calling handler that does not invoke `muffleMessage` lets
+#' the message through untouched.
+#'
+#' @param ... Passed to `ConsRank::consrank()`.
+#' @return The list returned by `ConsRank::consrank()`.
+#' @noRd
+quiet_consrank <- function(...) {
+  fit <- NULL
+  utils::capture.output(
+    fit <- suppressMessages(ConsRank::consrank(..., ps = FALSE))
+  )
+  fit
 }
 
 #' Pick the solver for a problem of `p` items
@@ -143,8 +171,21 @@ validate_rankings <- function(x) {
   if (nrow(x) < 1L || ncol(x) < 2L) {
     stop("`x` needs at least one judge and two variables.", call. = FALSE)
   }
-  if (any(x < 1)) {
-    stop("Ranks must start at 1, where 1 is the most important variable.", call. = FALSE)
+  # Every judge must rank *something* first. Checking `any(x < 1)` would let a
+  # matrix of importance scores through, which is the mistake this catches: a
+  # judge whose best rank is 2 has either mis-encoded the ranking or handed us
+  # scores instead of ranks.
+  best_rank <- apply(x, 1L, min)
+  if (any(best_rank != 1)) {
+    bad <- which(best_rank != 1)
+    stop(
+      "Ranks must start at 1, where 1 is the most important variable. ",
+      "Judge ", toString(utils::head(bad, 5L)),
+      if (length(bad) > 5L) ", ..." else "",
+      " has a best rank of ", toString(utils::head(best_rank[bad], 5L)), ". ",
+      "If these are importance scores, convert them with `importance_to_rank()`.",
+      call. = FALSE
+    )
   }
   if (is.null(colnames(x))) {
     colnames(x) <- paste0("V", seq_len(ncol(x)))

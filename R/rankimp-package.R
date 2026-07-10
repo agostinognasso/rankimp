@@ -4,6 +4,7 @@
 ## usethis namespace: start
 #' @importFrom ggplot2 autoplot
 #' @importFrom stats setNames
+#' @importFrom utils capture.output head
 ## usethis namespace: end
 NULL
 

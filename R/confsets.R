@@ -11,6 +11,12 @@
 #'
 #' Not implemented yet: scheduled for phase F3.
 #'
+#' The panel is taken from `cr$judges`, which [consensus_rank()] retains for
+#' exactly this purpose. Resampling the judges measures how much the consensus
+#' depends on which sources of importance happened to be in the panel;
+#' resampling the data underneath them, which requires refitting and so cannot
+#' be done from `cr` alone, measures how much it depends on the sample.
+#'
 #' @param cr A `consensus_rank` object.
 #' @param n_boot Number of bootstrap replicates.
 #' @param level Coverage of the rank confidence sets.

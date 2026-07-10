@@ -17,7 +17,8 @@ Imports:
     ConsRank,
     ggplot2,
     stats,
-    tibble
+    tibble,
+    utils
 Suggests:
     covr,
     knitr,

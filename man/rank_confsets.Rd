@@ -28,4 +28,10 @@ rank-averaging exercise, and it is the piece the methodological paper
 rests on.
 
 Not implemented yet: scheduled for phase F3.
+
+The panel is taken from \code{cr$judges}, which \code{\link[=consensus_rank]{consensus_rank()}} retains for
+exactly this purpose. Resampling the judges measures how much the consensus
+depends on which sources of importance happened to be in the panel;
+resampling the data underneath them, which requires refitting and so cannot
+be done from \code{cr} alone, measures how much it depends on the sample.
 }

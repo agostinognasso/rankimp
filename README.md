@@ -25,6 +25,8 @@ top.
 
 ## Installation
 
+Not on CRAN yet.
+
 ``` r
 # install.packages("pak")
 pak::pak("rankimp")

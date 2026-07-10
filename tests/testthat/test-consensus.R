@@ -70,6 +70,47 @@ test_that("malformed ranking matrices are rejected", {
   expect_error(consensus_rank(matrix(c(0, 1, 1, 2), 2, 2)), "Ranks must start at 1")
 })
 
+test_that("a judge whose best rank is not 1 is rejected", {
+  # The old check was `any(x < 1)`, which waves through a matrix of importance
+  # scores as long as every entry exceeds one, and waves through a ranking that
+  # starts at 2. Both are user errors worth naming.
+  offset <- rbind(c(2, 3, 4, 5), c(2, 3, 4, 5))
+
+  expect_error(consensus_rank(offset), "Ranks must start at 1")
+  expect_error(consensus_rank(offset), "importance_to_rank")
+})
+
+test_that("the error names the offending judges", {
+  panel <- rbind(c(1, 2, 3), c(4, 5, 6), c(1, 2, 3))
+
+  expect_error(consensus_rank(panel), "Judge 2")
+})
+
+test_that("the consensus keeps the panel it was computed from", {
+  J <- judges_matrix()
+  cr <- consensus_rank(J, weights = c(1, 1, 1, 2))
+
+  # rank_confsets() bootstraps the judges, and cannot do that from a ranking.
+  expect_identical(cr$judges, J)
+  expect_identical(cr$weights, c(1, 1, 1, 2))
+})
+
+test_that("an unweighted consensus records no weights", {
+  cr <- consensus_rank(judges_matrix())
+
+  expect_null(cr$weights)
+  expect_false(cr$weighted)
+})
+
+test_that("a degenerate panel does not leak ConsRank's commentary", {
+  # Two judges in perfect opposition: the combined input matrix is all zeros and
+  # ConsRank announces the fact with print(). Nothing should reach the console.
+  J <- rbind(c(1, 2), c(2, 1))
+
+  expect_silent(cr <- consensus_rank(J))
+  expect_equal(cr$tau, 0)
+})
+
 test_that("weights are validated against the panel", {
   J <- judges_matrix()
 

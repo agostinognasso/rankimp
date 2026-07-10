@@ -33,6 +33,8 @@ consensus itself; the contribution is the inferential layer on top.
 
 ## Installation
 
+Not on CRAN yet.
+
 ```r
 # install.packages("pak")
 pak::pak("rankimp")
