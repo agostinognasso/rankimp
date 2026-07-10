@@ -2,39 +2,108 @@
 % Please edit documentation in R/judges.R
 \name{importance_judges}
 \alias{importance_judges}
+\alias{print.judges}
 \title{Assemble the panel of judges}
 \usage{
 importance_judges(
   fit_list,
   methods = c("permutation", "mdi"),
+  data = NULL,
+  target = NULL,
   resamples = NULL,
   seeds = NULL,
-  weights = NULL
+  weights = NULL,
+  ties_method = c("min", "average", "first"),
+  ...
 )
+
+\method{print}{judges}(x, ...)
 }
 \arguments{
-\item{fit_list}{A named list of fitted models.}
+\item{fit_list}{A fitted model, or a (preferably named) list of them.
+Supported engines: randomForest, ranger. Unnamed models are called
+\code{model1}, \code{model2}, ...}
 
 \item{methods}{Character vector of importance methods, among
-\code{"permutation"}, \code{"shap"}, \code{"mdi"}, \code{"loco"}, \code{"drop_column"}.}
+\code{"permutation"}, \code{"mdi"}, \code{"shap"}, \code{"loco"}.}
 
-\item{resamples}{Optional \code{rsample} object giving the folds or bootstrap
-samples over which importance is recomputed.}
+\item{data}{Data frame holding the response and the predictors. Required
+unless \code{methods} is only \code{"mdi"} and no \code{seeds} or \code{resamples} are given.}
 
-\item{seeds}{Optional integer vector of seeds for refitting each model.}
+\item{target}{Name of the response column in \code{data}.}
 
-\item{weights}{Optional named numeric vector of method weights.}
+\item{resamples}{Optional \code{rset} (from \code{\link[rsample:vfold_cv]{rsample::vfold_cv()}} or
+\code{\link[rsample:bootstraps]{rsample::bootstraps()}}) giving the resampling axis.}
+
+\item{seeds}{Optional integer vector of seeds for the refitting axis.}
+
+\item{weights}{Optional named numeric vector of method weights, e.g.
+\code{c(permutation = 1, mdi = 0.5)}. Every method in \code{methods} must be named.
+The expanded per-judge weights travel with the panel and are picked up by
+\code{\link[=consensus_rank]{consensus_rank()}}.}
+
+\item{ties_method}{Passed to \code{\link[=importance_to_rank]{importance_to_rank()}}.}
+
+\item{...}{Unused.}
+
+\item{x}{A \code{judges} object.}
 }
 \value{
-An object of class \code{judges}: a ranking matrix with one row per
-judge, carrying the provenance of each row as attributes.
+An object of class \code{judges}: an integer ranking matrix with one row
+per judge, carrying as attributes the \code{provenance} of each row (a tibble
+with the judge's model, engine, method, seed and resample), the raw
+\code{scores} behind the ranks, and the per-judge \code{weights} (or \code{NULL}).
 }
 \description{
 Builds the ranking matrix consumed by \code{\link[=consensus_rank]{consensus_rank()}} from any
 combination of the four axes along which a variable importance ranking can
-vary: the method used, the seed of the ensemble, the resample of the data,
-and the model family.
+vary: the \emph{method} used, the \emph{model} it interrogates, the \emph{seed} of the
+ensemble, and the \emph{resample} of the data. Every combination of the active
+axes becomes one judge — one row of the panel — whose importance scores are
+computed by the matching backend and turned into a ranking with
+\code{\link[=importance_to_rank]{importance_to_rank()}}.
 }
-\details{
-Not implemented yet: scheduled for phase F1.
+\section{The four axes}{
+
+\itemize{
+\item \strong{Methods} (\code{methods}): each importance method is one voice; see
+\link{importance_backends}.
+\item \strong{Models} (\code{fit_list}): several fitted models — a cross-model consensus
+asks which variables matter regardless of the learner. All models must be
+trained on the same predictors.
+\item \strong{Seeds} (\code{seeds}): each seed refits every model on \code{data} after
+\code{set.seed(seed)}, measuring the stability of the ranking under the
+ensemble's own randomness. Refits keep the original number of trees and
+\code{mtry}.
+\item \strong{Resamples} (\code{resamples}): an \code{rset} from the rsample package (v-fold
+CV or bootstrap). Every split refits the models on its analysis set;
+permutation and SHAP importance are then computed on the assessment set,
+and LOCO refits on the analysis set and evaluates on the assessment set —
+the out-of-sample versions of those importances. MDI, which has no data
+argument, is read off the refit.
+}
+
+Without \code{seeds} or \code{resamples} the supplied fits are used as they are, and
+data-dependent importances are in-sample. Axes combine as a full grid:
+models × methods × seeds × resamples.
+}
+
+\section{Reproducibility}{
+
+Permutation shuffles, SHAP row subsampling and refits draw from the session
+RNG; call \code{set.seed()} before this function for a reproducible panel.
+}
+
+\examples{
+\dontshow{if (requireNamespace("randomForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+set.seed(1)
+fit <- randomForest::randomForest(mpg ~ ., data = mtcars, ntree = 50)
+judges <- importance_judges(fit, methods = c("permutation", "mdi"),
+                            data = mtcars, target = "mpg", n_perm = 2)
+judges
+consensus_rank(judges)
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\link{importance_backends}, \code{\link[=judge_weights]{judge_weights()}}, \code{\link[=consensus_rank]{consensus_rank()}}
 }

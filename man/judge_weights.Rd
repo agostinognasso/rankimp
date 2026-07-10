@@ -7,23 +7,50 @@
 judge_weights(judges, by = c("equal", "method", "reliability"), values = NULL)
 }
 \arguments{
-\item{judges}{A \code{judges} object.}
+\item{judges}{A \code{judges} object from \code{\link[=importance_judges]{importance_judges()}}, or a plain
+ranking matrix (judges in rows) for the schemes that need no provenance.}
 
-\item{by}{Weighting scheme: \code{"equal"}, \code{"method"} (a weight per importance
-method) or \code{"reliability"} (weights proportional to a judge's agreement
-with the rest of the panel).}
+\item{by}{Weighting scheme: \code{"equal"}, \code{"method"} or \code{"reliability"}.}
 
-\item{values}{Named numeric vector of weights, when \code{by = "method"}.}
+\item{values}{Named numeric vector of method weights, when \code{by = "method"}:
+every method present in the panel must be named.}
 }
 \value{
-A numeric vector of weights, one per judge.
+A named numeric vector of positive weights, one per judge.
 }
 \description{
 Not every judge deserves an equal say. Impurity-based importance is known
 to favour high-cardinality predictors, so a panel that mixes it with
-out-of-bag permutation importance should down-weight it rather than let
-the two cancel out.
+permutation importance may want to down-weight it rather than let the two
+cancel out. The returned vector plugs straight into
+\code{\link[=consensus_rank]{consensus_rank()}}'s \code{weights} argument.
 }
-\details{
-Not implemented yet: scheduled for phase F1.
+\section{Schemes}{
+
+\itemize{
+\item \code{"equal"} — every judge weighs 1.
+\item \code{"method"} — one weight per importance method, supplied through \code{values}
+and expanded over the judges. Needs the provenance that
+\code{\link[=importance_judges]{importance_judges()}} records, so it only works on a \code{judges} object.
+\item \code{"reliability"} — a judge's weight grows with its agreement with the rest
+of the panel: \eqn{w_k = (1 + \bar\tau_k)/2}, where \eqn{\bar\tau_k} is
+the mean Emond–Mason \eqn{\tau_x} correlation between judge \eqn{k} and
+every other judge, computed with \code{\link[ConsRank:tau_x]{ConsRank::tau_x()}}. Weights are
+normalised to mean 1, and floored at machine epsilon so that a judge in
+perfect disagreement with everyone is effectively — but not numerically —
+excluded. Down-weighting the dissenters sharpens the consensus around the
+majority view; when dissent is the interesting signal, look at
+\code{judge_clusters()} instead of weighting it away.
+}
+}
+
+\examples{
+judges <- rbind(
+  c(1, 2, 3, 4), c(1, 2, 4, 3), c(2, 1, 3, 4), c(4, 3, 2, 1)
+)
+colnames(judges) <- c("income", "age", "balance", "region")
+judge_weights(judges, by = "reliability")
+}
+\seealso{
+\code{\link[=importance_judges]{importance_judges()}}, \code{\link[=consensus_rank]{consensus_rank()}}
 }

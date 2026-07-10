@@ -8,43 +8,102 @@
 \alias{importance_loco}
 \title{Importance backends}
 \usage{
-importance_permutation(fit, data, target, ...)
+importance_permutation(fit, data, target, n_perm = 5L, ...)
 
-importance_mdi(fit, data, target, ...)
+importance_mdi(fit, data = NULL, target = NULL, ...)
 
-importance_shap(fit, data, target, ...)
+importance_shap(fit, data, target, n_explain = 100L, bg_n = 200L, ...)
 
-importance_loco(fit, data, target, ...)
+importance_loco(fit, data, target, newdata = NULL, ...)
 }
 \arguments{
-\item{fit}{A fitted model.}
+\item{fit}{A fitted model (randomForest or ranger).}
 
-\item{data}{The data on which importance is computed.}
+\item{data}{A data frame holding the response and every predictor the model
+was trained on. For \code{importance_mdi()} the scores are read off the fit,
+so \code{data} and \code{target} are accepted but unused.}
 
 \item{target}{Name of the response column in \code{data}.}
 
-\item{...}{Passed to the underlying backend.}
+\item{n_perm}{Number of independent shuffles per predictor.}
+
+\item{...}{Ignored. It absorbs the arguments meant for the other backends
+when the call comes from \code{\link[=importance_judges]{importance_judges()}}, which forwards its own
+\code{...} to every backend it invokes.}
+
+\item{n_explain}{Maximum number of rows to explain.}
+
+\item{bg_n}{Size of the background sample, passed to
+\code{\link[kernelshap:kernelshap]{kernelshap::kernelshap()}}.}
+
+\item{newdata}{Optional data frame on which the losses are evaluated.}
 }
 \value{
-A named numeric vector of importance scores.
+A named numeric vector of importance scores, one per predictor.
 }
 \description{
-Thin adapters that ask each supported package for a vector of importance
-scores, so that \code{\link[=importance_judges]{importance_judges()}} does not have to know how \code{vip},
-\code{DALEX} or \code{fastshap} spell their arguments. Every backend returns a named
-numeric vector over the predictors, higher meaning more important.
+Each backend asks a fitted model for one named numeric vector of importance
+scores over its predictors, higher meaning more important. They are the
+judges' voices: \code{\link[=importance_judges]{importance_judges()}} calls them once per judge, and they
+can equally be called directly when a single score vector is all that is
+needed.
 }
 \details{
-Not implemented yet: scheduled for phase F1.
+Permutation, MDI and LOCO are implemented natively against the supported
+engines (randomForest, ranger); SHAP delegates to the kernelshap package.
+Scores are computed on the data supplied, so permutation and LOCO are
+in-sample unless \code{data} is a holdout set — \code{\link[=importance_judges]{importance_judges()}} with a
+\code{resamples} axis is the out-of-sample version.
+
+Backends that randomise (permutation shuffles, SHAP row subsampling, LOCO
+refits) draw from the session RNG: call \code{set.seed()} first for
+reproducibility.
 }
 \section{Functions}{
 \itemize{
-\item \code{importance_permutation()}: Permutation importance.
+\item \code{importance_permutation()}: Permutation importance: the mean increase
+in loss (RMSE for regression, misclassification rate for classification)
+when one predictor's column is shuffled, over \code{n_perm} shuffles.
 
-\item \code{importance_mdi()}: Mean decrease in impurity.
+\item \code{importance_mdi()}: Mean decrease in impurity, read off the
+fit: \code{IncNodePurity} (regression) or \code{MeanDecreaseGini} (classification)
+for randomForest, \code{variable.importance} for a ranger model fitted with
+\code{importance = "impurity"}.
 
-\item \code{importance_shap()}: Mean absolute SHAP value.
+\item \code{importance_shap()}: Mean absolute SHAP value, via
+\code{\link[kernelshap:kernelshap]{kernelshap::kernelshap()}}. For classifiers the mean is also taken across
+classes; ranger classifiers must be fitted with \code{probability = TRUE}.
+At most \code{n_explain} rows of \code{data} are explained (sampled without
+replacement when there are more), against a background sample of \code{bg_n}
+rows drawn by kernelshap.
 
-\item \code{importance_loco()}: Leave-one-covariate-out.
+\item \code{importance_loco()}: Leave-one-covariate-out: the increase in
+loss when the model is refitted on \code{data} without one predictor
+(preserving the original number of trees and \code{mtry}, capped) and compared
+with \code{fit}. Losses are evaluated on \code{newdata} when supplied, on \code{data}
+otherwise; \code{data} should be the data \code{fit} was trained on, or the
+comparison mixes training sets. The most expensive backend: one refit per
+predictor.
 
 }}
+\examples{
+\dontshow{if (requireNamespace("randomForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+set.seed(1)
+fit <- randomForest::randomForest(mpg ~ ., data = mtcars, ntree = 50)
+importance_permutation(fit, mtcars, "mpg", n_perm = 2)
+\dontshow{\}) # examplesIf}
+\dontshow{if (requireNamespace("randomForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+set.seed(1)
+fit <- randomForest::randomForest(mpg ~ ., data = mtcars, ntree = 50)
+importance_mdi(fit)
+\dontshow{\}) # examplesIf}
+\dontshow{if (requireNamespace("randomForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+set.seed(1)
+small <- mtcars[c("mpg", "wt", "hp", "qsec")]
+fit <- randomForest::randomForest(mpg ~ ., data = small, ntree = 30)
+importance_loco(fit, small, "mpg")
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[=importance_judges]{importance_judges()}}, \code{\link[=importance_to_rank]{importance_to_rank()}}
+}

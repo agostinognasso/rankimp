@@ -11,8 +11,8 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
 ```
 
-> **Status.** The ingestion layer is phase F1 and the heterogeneity layer is
-> phase F4. This vignette fixes the interface.
+> **Status.** The ingestion layer (F1) is implemented; the heterogeneity layer
+> is phase F4. This vignette fixes the `judge_clusters()` interface.
 
 A low `tau_x` is not a failure of the consensus. It is a finding about the
 methods.
@@ -28,8 +28,10 @@ into a single ordering destroys exactly the information that mattered.
 library(rankimp)
 
 J <- importance_judges(
-  fit_list = list(rf = rf_fit, xgb = xgb_fit),
+  fit_list = list(rf = rf_fit, rgr = ranger_fit),
   methods  = c("permutation", "shap", "mdi"),
+  data     = df,
+  target   = "y",
   weights  = c(permutation = 1, shap = 1, mdi = 0.5)
 )
 ```

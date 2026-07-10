@@ -2,7 +2,11 @@ Package: rankimp
 Title: Consensus Ranking of Variable Importance with Uncertainty
 Version: 0.0.0.9000
 Authors@R:
-    person("Agostino", "Gnasso", , "gn.agostino@gmail.com", role = c("aut", "cre"))
+       person(given = "Agostino",
+           family = "Gnasso",
+           role = c("aut", "cre", "cph"),
+           email = "agostino.gnasso@unina.it",
+           comment = c(ORCID = "0000-0002-8046-3923"))
 Description: Variable importance rankings depend on the method, the random
     seed and the resample used to compute them. This package treats every
     source of importance as a judge expressing a ranking over the
@@ -21,8 +25,12 @@ Imports:
     utils
 Suggests:
     covr,
+    kernelshap,
     knitr,
+    randomForest,
+    ranger,
     rmarkdown,
+    rsample,
     stabm,
     testthat (>= 3.0.0)
 VignetteBuilder:

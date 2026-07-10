@@ -2,6 +2,21 @@
 
 ## New
 
+* `importance_judges()` builds the panel from fitted models along the four
+  axes of the roadmap — method, model, seed, resample — and records the
+  provenance, raw scores and per-judge weights on the returned `judges`
+  object, which `consensus_rank()` consumes weights and all. Supported
+  engines: randomForest and ranger; resamples come from `rsample::vfold_cv()`
+  or `rsample::bootstraps()`, refit on the analysis set and scored on the
+  assessment set.
+* Importance backends: `importance_permutation()`, `importance_mdi()` and
+  `importance_loco()` are implemented natively against the supported engines;
+  `importance_shap()` delegates to kernelshap. The originally planned SHAP
+  backend, fastshap, was archived from CRAN on 2026-05-27 (and vip is gone
+  too), so kernelshap is the dependency of record.
+* `judge_weights()` expands method weights over a panel, or weighs each judge
+  by its mean Emond–Mason `tau_x` agreement with the rest of the panel
+  (`by = "reliability"`).
 * `rank_confsets()` bootstraps the judges to put a rank confidence set around
   the consensus, `prob_topk()` reports the probability that a variable belongs
   to the top `k`, and `rank_select()` keeps the variables whose whole interval
@@ -50,6 +65,7 @@
   ties between variables a judge scores equally.
 * `print()` method for the `consensus_rank` class, reporting the `tau_x`
   agreement and warning when several consensus rankings are equally optimal.
-* The ingestion (F1), inference (F3) and heterogeneity (F4) entry points are
-  declared and documented; calling them raises an error naming the phase in
-  which they are scheduled.
+* The ingestion (F1), inference (F3) and heterogeneity (F4) entry points were
+  declared and documented from the first commit, failing with an error naming
+  their phase until implemented. Of these, only `judge_clusters()` (F4) still
+  does.

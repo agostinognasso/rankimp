@@ -36,7 +36,9 @@
 #'   See [importance_to_rank()] to build `x` from importance scores.
 #' @param weights Optional numeric vector of length `nrow(x)` giving the
 #'   weight of each judge. Weights let a permutation importance computed
-#'   out-of-bag count for more than an impurity-based one.
+#'   out-of-bag count for more than an impurity-based one. When `x` is a
+#'   `judges` object carrying method weights (see [importance_judges()] and
+#'   [judge_weights()]), those are used unless `weights` overrides them.
 #' @param algorithm One of `"auto"`, `"exact"`, `"quick"`, `"fast"`,
 #'   `"decor"`.
 #' @param ties Keep ties in the consensus ranking.
@@ -67,6 +69,9 @@ consensus_rank <- function(x,
                            algorithm = c("auto", "exact", "quick", "fast", "decor"),
                            ties = TRUE) {
   algorithm <- match.arg(algorithm)
+  if (is.null(weights) && inherits(x, "judges")) {
+    weights <- attr(x, "weights")
+  }
   x <- validate_rankings(x)
 
   p <- ncol(x)

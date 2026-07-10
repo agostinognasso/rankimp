@@ -66,14 +66,17 @@ the thing an average of Borda scores can never say.
 
 ## Status
 
-Early development. The consensus itself and the conversion from
-importance scores to rankings work; the ingestion, inference and
-heterogeneity layers are declared, documented and not yet implemented —
-calling them raises an error that says which phase they belong to.
+Early development. The panel construction, the consensus and the
+inferential layer work end to end: `importance_judges()` interrogates
+fitted models (randomForest, ranger) along the method, model, seed and
+resample axes, and `rank_confsets()` puts intervals around the
+consensus. The heterogeneity layer (`judge_clusters()`) is declared,
+documented and not yet implemented — calling it raises an error that
+says which phase it belongs to.
 
 | Phase | Content | State |
 |----|----|----|
-| F1 | `importance_judges()`, backends, weights | declared |
+| F1 | `importance_judges()`, backends, weights | done |
 | F2 | Consensus, ties, algorithm selection | done |
 | F3 | Bootstrap, rank confidence sets, `prob_topk()`, `rank_select()` | done |
 | F4 | Judge clustering, plots, vignettes | `item_consensus()` and `autoplot()` done |

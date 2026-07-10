@@ -19,7 +19,9 @@ consensus_rank(
 
 \item{weights}{Optional numeric vector of length \code{nrow(x)} giving the
 weight of each judge. Weights let a permutation importance computed
-out-of-bag count for more than an impurity-based one.}
+out-of-bag count for more than an impurity-based one. When \code{x} is a
+\code{judges} object carrying method weights (see \code{\link[=importance_judges]{importance_judges()}} and
+\code{\link[=judge_weights]{judge_weights()}}), those are used unless \code{weights} overrides them.}
 
 \item{algorithm}{One of \code{"auto"}, \code{"exact"}, \code{"quick"}, \code{"fast"},
 \code{"decor"}.}

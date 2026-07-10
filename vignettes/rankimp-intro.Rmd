@@ -63,6 +63,31 @@ importance_to_rank(importance)
 Note that the permutation judge cannot separate `age` from `balance`, and says
 so.
 
+## Building the panel from fitted models
+
+Hand-building the score matrix is fine for a demonstration and tedious in
+practice. `importance_judges()` builds it from fitted models directly — here
+two methods interrogating one forest, the smallest panel worth having:
+
+```{r, eval = requireNamespace("randomForest", quietly = TRUE)}
+set.seed(1)
+fit <- randomForest::randomForest(mpg ~ ., data = mtcars, ntree = 200)
+
+J <- importance_judges(
+  fit,
+  methods = c("permutation", "mdi"),
+  data    = mtcars,
+  target  = "mpg"
+)
+J
+
+consensus_rank(J)$ranking
+```
+
+Models (`fit_list`), seeds (`seeds`) and resamples of the data (`resamples`)
+enter the same way, and every extra axis multiplies the panel; see
+`?importance_judges`.
+
 ## Ties are information
 
 Because the Kemeny median is taken over weak orderings, it can return ties too.
@@ -89,6 +114,11 @@ so rather than let the bias average out.
 ```{r}
 consensus_rank(judges, weights = c(1, 1, 1, 0.5))$ranking
 ```
+
+`judge_weights()` builds these vectors from a panel — one weight per method, or
+weights proportional to each judge's agreement with the rest — and a panel
+built by `importance_judges(..., weights = )` carries them into
+`consensus_rank()` on its own.
 
 ## What comes next
 

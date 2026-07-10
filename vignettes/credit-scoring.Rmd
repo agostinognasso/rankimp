@@ -11,8 +11,10 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
 ```
 
-> **Status.** Placeholder. The case study needs the ingestion layer (F1) and the
-> inferential layer (F3).
+> **Status.** Placeholder. The ingestion (F1) and inferential (F3) layers are
+> implemented; the case study still needs the portfolio data, and the
+> gradient-boosting and penalised-regression judges need engines beyond
+> randomForest and ranger (roadmap).
 
 A lender must be able to say which characteristics drive a decision, and must be
 able to defend the claim. "Our random forest's permutation importance ranked
@@ -28,15 +30,17 @@ along all four axes at once — method, seed, fold, and model family.
 library(rankimp)
 
 J <- importance_judges(
-  fit_list  = list(rf = rf_fit, xgb = xgb_fit, glmnet = glm_fit),
+  fit_list  = list(rf = rf_fit, rgr = ranger_fit),
   methods   = c("permutation", "shap", "mdi"),
+  data      = loans,
+  target    = "default",
   resamples = rsample::vfold_cv(loans, v = 10),
   seeds     = 1:5,
   weights   = c(permutation = 1, shap = 1, mdi = 0.5)
 )
 ```
 
-Three model families, three methods, ten folds, five seeds: 450 judges. Any one
+Two model families, three methods, ten folds, five seeds: 300 judges. Any one
 of them, reported alone, would be a publishable-looking result.
 
 ## What survives
