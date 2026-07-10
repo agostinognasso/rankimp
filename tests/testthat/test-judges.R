@@ -45,7 +45,7 @@ test_that("importance_to_rank rejects malformed input", {
 
 test_that("not-yet-implemented entry points fail loudly", {
   expect_error(importance_judges(list()), "not implemented yet")
-  expect_error(rank_confsets(1), "not implemented yet")
+  expect_error(judge_weights(1), "not implemented yet")
+  expect_error(importance_permutation(1, 2, 3), "not implemented yet")
   expect_error(judge_clusters(1), "not implemented yet")
-  expect_error(rank_select(1), "not implemented yet")
 })

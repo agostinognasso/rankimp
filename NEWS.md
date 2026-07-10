@@ -1,5 +1,29 @@
 # rankimp 0.0.0.9000
 
+## New
+
+* `rank_confsets()` bootstraps the judges to put a rank confidence set around
+  the consensus, `prob_topk()` reports the probability that a variable belongs
+  to the top `k`, and `rank_select()` keeps the variables whose whole interval
+  clears a threshold. Resampling is done with multinomial judge weights rather
+  than by rebuilding the panel, which `ConsRank` treats identically.
+* `item_consensus()` scores every judge against the consensus, so that a low
+  `tau_x` can be read as a split panel rather than as noise.
+* `autoplot()` for `rank_confsets` draws the consensus ranking with its
+  intervals.
+* `vignette("against-set-stability")` separates this package from `stabm`:
+  two panels with identical Nogueira and Jaccard set stability, one of which has
+  a completely unordered top three.
+
+## Changed
+
+* `algorithm = "auto"` uses exact branch-and-bound up to ten variables rather
+  than twelve. Its cost is not smooth in `p` and the panels this package
+  produces are the hard ones, because unimportant variables tie near zero. On
+  tied panels of thirty judges one exact solve took 0.010 s at `p = 10`, 0.78 s
+  at `p = 11` and 280 s at `p = 12`, while `"quick"` returned the identical
+  consensus and `tau_x` on twenty out of twenty tied panels at `p = 10`.
+
 ## Correctness
 
 * `consensus_rank()` no longer leaks `ConsRank`'s console output on degenerate

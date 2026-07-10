@@ -51,9 +51,11 @@ test_that("ties in the consensus survive by default and vanish on request", {
 })
 
 test_that("the algorithm is chosen from the number of variables", {
+  # Ten, not twelve: branch-and-bound on tied panels of thirty judges was
+  # measured at 0.010 s for p = 10, 0.78 s for p = 11 and 280 s for p = 12.
   expect_identical(resolve_algorithm("auto", 4L), "BB")
-  expect_identical(resolve_algorithm("auto", 12L), "BB")
-  expect_identical(resolve_algorithm("auto", 13L), "quick")
+  expect_identical(resolve_algorithm("auto", 10L), "BB")
+  expect_identical(resolve_algorithm("auto", 11L), "quick")
   expect_identical(resolve_algorithm("auto", 50L), "quick")
   expect_message(expect_identical(resolve_algorithm("auto", 51L), "fast"))
 })

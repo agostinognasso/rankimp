@@ -71,13 +71,18 @@ importance scores to rankings work; the ingestion, inference and
 heterogeneity layers are declared, documented and not yet implemented —
 calling them raises an error that says which phase they belong to.
 
-| Phase | Content                                        | State       |
-|-------|------------------------------------------------|-------------|
-| F1    | `importance_judges()`, backends, weights       | partly done |
-| F2    | Consensus, ties, algorithm selection           | partly done |
-| F3    | Bootstrap, rank confidence sets, `prob_topk()` | declared    |
-| F4    | Judge clustering, plots, vignettes             | declared    |
-| F5    | CRAN, methodological paper                     | —           |
+| Phase | Content | State |
+|----|----|----|
+| F1 | `importance_judges()`, backends, weights | declared |
+| F2 | Consensus, ties, algorithm selection | done |
+| F3 | Bootstrap, rank confidence sets, `prob_topk()`, `rank_select()` | done |
+| F4 | Judge clustering, plots, vignettes | `item_consensus()` and `autoplot()` done |
+| F5 | CRAN, methodological paper | — |
+
+The inferential layer came first on purpose. `consensus_rank()`
+orchestrates `ConsRank`; `rank_confsets()` does not orchestrate
+anything, and it is the part that lets a claim about variable importance
+be falsified.
 
 ## Related work
 

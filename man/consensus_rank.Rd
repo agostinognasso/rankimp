@@ -56,13 +56,22 @@ Set \code{ties = FALSE} to force a linear order.
 Finding the Kemeny median is NP-hard, so \code{algorithm = "auto"} picks by
 problem size:
 \itemize{
-\item \code{p <= 12} — \code{"exact"}, branch-and-bound. (\code{ConsRank} refuses
-branch-and-bound above 15 items with ties allowed; 12 leaves a margin.)
-\item \verb{13 <= p <= 50} — \code{"quick"}.
-\item \code{p > 50} — \code{"fast"}, with a message. The integer-programming route of
-the roadmap, which would restore optimality guarantees at this size, is
-a phase F2 deliverable.
+\item \code{p <= 10} — \code{"exact"}, branch-and-bound.
+\item \verb{11 <= p <= 50} — \code{"quick"}.
+\item \code{p > 50} — \code{"fast"}, with a message. The integer-programming route of the
+roadmap, which would restore optimality guarantees at this size, is a phase
+F2 deliverable.
 }
+
+The exact threshold is ten rather than the fifteen \code{ConsRank} permits,
+because the cost of branch-and-bound is not a smooth function of \code{p} and the
+panels this package produces are the hard ones. Importance scores tie: the
+unimportant variables all sit near zero and rank equal. On tied panels of
+thirty judges the same solver took 0.010 s at \code{p = 10}, 0.78 s at \code{p = 11}
+and 280 s at \code{p = 12}. Meanwhile \code{"quick"} returned the identical consensus
+and the identical \code{tau_x} on twenty out of twenty tied panels at \code{p = 10}.
+Exactness above ten variables buys little and can cost minutes, so ask for it
+deliberately with \code{algorithm = "exact"}.
 }
 
 \examples{

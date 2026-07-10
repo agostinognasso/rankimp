@@ -12,8 +12,19 @@ prob_topk(cb, k = 5L)
 \item{k}{Size of the top set.}
 }
 \value{
-A tibble of variables and probabilities, in decreasing order.
+A tibble of variables and probabilities, in decreasing order of
+probability.
 }
 \description{
-Not implemented yet: scheduled for phase F3.
+The proportion of bootstrap replicates in which the variable's consensus rank
+is at most \code{k}. Ties are counted as membership: a variable tied at rank \code{k}
+with another is in the top \code{k}.
+}
+\examples{
+judges <- rbind(c(1, 2, 3, 4), c(1, 3, 2, 4), c(2, 1, 3, 4))
+colnames(judges) <- c("income", "age", "balance", "region")
+prob_topk(rank_confsets(consensus_rank(judges), n_boot = 50), k = 2)
+}
+\seealso{
+\code{\link[=rank_confsets]{rank_confsets()}}
 }

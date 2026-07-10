@@ -8,11 +8,8 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
-
-> **Status.** The inferential layer is phase F3. This vignette fixes the
-> interface and states what the layer has to deliver.
 
 Two sources of instability, and they are not the same thing.
 
@@ -26,43 +23,96 @@ again. This is variability of the *estimand*, and multi-fold judges measure it.
 A ranking that survives the first but not the second is telling you the sample
 is too small to support the claim, not that the model is unstable.
 
-## Rank confidence sets
+`rank_confsets()` addresses the first directly: it resamples the judges you
+already have. The second needs refitting, and so needs the ingestion layer of
+phase F1.
+
+## A panel that does not quite agree
 
 ```{r}
 library(rankimp)
 
-J <- importance_judges(
-  fit_list  = list(rf = rf_fit),
-  methods   = "permutation",
-  resamples = rsample::vfold_cv(df, v = 10)
+judges <- rbind(
+  permutation_seed1 = c(1, 2, 3, 4, 5),
+  permutation_seed2 = c(1, 2, 3, 5, 4),
+  permutation_seed3 = c(2, 1, 3, 4, 5),
+  shap              = c(1, 3, 2, 4, 5),
+  impurity          = c(1, 2, 4, 3, 5),
+  loco              = c(2, 1, 3, 5, 4)
 )
+colnames(judges) <- c("income", "age", "balance", "region", "tenure")
 
-cr <- consensus_rank(J)
-cb <- rank_confsets(cr, n_boot = 500, level = 0.95)
-
-autoplot(cb)
+cr <- consensus_rank(judges)
+cr
 ```
 
-The plot shows each variable at its consensus rank with the interval of ranks it
-plausibly occupies. Overlapping intervals mean the two variables cannot be
-ordered on this evidence — which is the statement most importance plots refuse
-to make.
+`tau_x` summarises the agreement. Whether that summary is a fair one is a
+separate question, and `item_consensus()` answers it by scoring every judge
+against the consensus:
+
+```{r}
+item_consensus(cr)
+```
+
+A single judge far below the rest is a finding, not noise. Marginal and
+conditional importance measures diverge by construction when predictors are
+correlated, and the one in the minority will look like an outlier.
+
+## Rank confidence sets
+
+```{r}
+set.seed(1)
+cb <- rank_confsets(cr, n_boot = 500)
+cb
+```
+
+Each variable sits at its consensus rank, with the interval of ranks it
+plausibly occupies when the panel is resampled. Overlapping intervals mean the
+two variables cannot be ordered on this evidence — the statement most importance
+plots decline to make.
+
+```{r, fig.width = 6, fig.height = 3.5}
+autoplot(cb)
+```
 
 ## Probability of membership in the top k
 
 ```{r}
-prob_topk(cb, k = 5)
+prob_topk(cb, k = 2)
 ```
 
-"`income` is the third most important variable" is a claim that cannot be
-falsified. "`income` is in the top five with probability 0.97" can be.
+"`income` is the most important variable" is a claim that cannot be falsified.
+"`income` is in the top two with the probability printed above" can be.
 
 ## Selection with a guarantee
 
 ```{r}
-rank_select(cb, threshold = 10)
+rank_select(cb, threshold = 3)
 ```
 
-A variable is selected only when its whole confidence set sits above the
-threshold. Selecting on the point estimate would ignore that the ranking was
-estimated in the first place.
+A variable is selected only when its whole confidence set clears the threshold.
+Selecting on the point estimate would ignore that the ranking was estimated in
+the first place. The rule is conservative on purpose: it answers "which
+variables am I sure about", and `prob_topk()` quantifies the doubt about the
+rest.
+
+## A note on cost
+
+Every bootstrap replicate solves a Kemeny problem, which is NP-hard. Exact
+branch-and-bound is fast on panels that agree and pathological on panels that do
+not: on tied panels of thirty judges, one exact solve took 0.010 s with ten
+variables, 0.78 s with eleven, and 280 s with twelve. That last figure is a day
+and a half for five hundred replicates.
+
+`rank_confsets()` therefore resamples with the `"quick"` heuristic by default
+and reports which solver it used. On twenty tied panels of ten variables,
+`"quick"` returned the identical consensus and the identical `tau_x` as exact
+branch-and-bound. Pass `algorithm = "exact"` if you want the guarantee inside
+the bootstrap and the panel is small enough to afford it.
+
+## Related work
+
+`vignette("against-set-stability")` compares this machinery with
+[`stabm`](https://cran.r-project.org/package=stabm), which measures whether
+resamples select the same features rather than whether they order them the same
+way. The two answer different questions and a careful analysis wants both.

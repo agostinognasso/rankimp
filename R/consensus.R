@@ -14,12 +14,21 @@
 #' Finding the Kemeny median is NP-hard, so `algorithm = "auto"` picks by
 #' problem size:
 #'
-#' * `p <= 12` — `"exact"`, branch-and-bound. (`ConsRank` refuses
-#'   branch-and-bound above 15 items with ties allowed; 12 leaves a margin.)
-#' * `13 <= p <= 50` — `"quick"`.
-#' * `p > 50` — `"fast"`, with a message. The integer-programming route of
-#'   the roadmap, which would restore optimality guarantees at this size, is
-#'   a phase F2 deliverable.
+#' * `p <= 10` — `"exact"`, branch-and-bound.
+#' * `11 <= p <= 50` — `"quick"`.
+#' * `p > 50` — `"fast"`, with a message. The integer-programming route of the
+#'   roadmap, which would restore optimality guarantees at this size, is a phase
+#'   F2 deliverable.
+#'
+#' The exact threshold is ten rather than the fifteen `ConsRank` permits,
+#' because the cost of branch-and-bound is not a smooth function of `p` and the
+#' panels this package produces are the hard ones. Importance scores tie: the
+#' unimportant variables all sit near zero and rank equal. On tied panels of
+#' thirty judges the same solver took 0.010 s at `p = 10`, 0.78 s at `p = 11`
+#' and 280 s at `p = 12`. Meanwhile `"quick"` returned the identical consensus
+#' and the identical `tau_x` on twenty out of twenty tied panels at `p = 10`.
+#' Exactness above ten variables buys little and can cost minutes, so ask for it
+#' deliberately with `algorithm = "exact"`.
 #'
 #' @param x A numeric matrix of rankings, judges in rows and variables in
 #'   columns, where `1` denotes the most important variable. Ties are
@@ -142,7 +151,7 @@ resolve_algorithm <- function(algorithm, p) {
   if (algorithm != "auto") {
     return(switch(algorithm, exact = "BB", quick = "quick", fast = "fast", decor = "decor"))
   }
-  if (p <= 12L) {
+  if (p <= 10L) {
     "BB"
   } else if (p <= 50L) {
     "quick"

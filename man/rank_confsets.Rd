@@ -2,9 +2,17 @@
 % Please edit documentation in R/confsets.R
 \name{rank_confsets}
 \alias{rank_confsets}
+\alias{print.rank_confsets}
 \title{Bootstrap confidence sets for the consensus ranking}
 \usage{
-rank_confsets(cr, n_boot = 500L, level = 0.95)
+rank_confsets(
+  cr,
+  n_boot = 500L,
+  level = 0.95,
+  algorithm = c("quick", "exact", "fast", "decor")
+)
+
+\method{print}{rank_confsets}(x, ...)
 }
 \arguments{
 \item{cr}{A \code{consensus_rank} object.}
@@ -12,26 +20,76 @@ rank_confsets(cr, n_boot = 500L, level = 0.95)
 \item{n_boot}{Number of bootstrap replicates.}
 
 \item{level}{Coverage of the rank confidence sets.}
+
+\item{algorithm}{Solver used for the replicates. \code{"quick"} by default;
+\code{"exact"}, \code{"fast"} and \code{"decor"} are also accepted, as in
+\code{\link[=consensus_rank]{consensus_rank()}}.}
+
+\item{x}{A \code{rank_confsets} object.}
+
+\item{...}{Unused.}
 }
 \value{
-An object of class \code{rank_confsets}.
+An object of class \code{rank_confsets}, a list with elements
+\code{confsets} (a tibble of variable, consensus rank, and the lower and upper
+ends of the rank interval), \code{ranks} (the \verb{n_boot x p} matrix of bootstrap
+ranks), \code{level}, \code{n_boot}, and \code{consensus} (the \code{cr} it came from).
 }
 \description{
-A single consensus ranking is a point estimate. Resampling the judges (or
-the data underneath them) gives the sampling distribution of each
-variable's position, from which follow the interval of plausible ranks for
-each variable and the probability that a variable belongs to the top \code{k}.
+A single consensus ranking is a point estimate. Resampling the judges gives
+the sampling distribution of each variable's position, from which follow the
+interval of plausible ranks for each variable and the probability that a
+variable belongs to the top \code{k}.
 }
 \details{
-This is the inferential layer that distinguishes the package from a
-rank-averaging exercise, and it is the piece the methodological paper
-rests on.
+This is the inferential layer. It is what distinguishes the package from a
+rank-averaging exercise, and it is what lets a claim about variable
+importance be falsified: "\code{income} is the third most important variable"
+cannot be checked, while "\code{income} is in the top five with probability 0.97"
+can.
+}
+\section{What is resampled}{
 
-Not implemented yet: scheduled for phase F3.
+The judges, drawn with replacement from \code{cr$judges}. This measures how much
+the consensus depends on \emph{which sources of importance happened to be in the
+panel} — a panel of ten permutation replicates and one SHAP judge will show
+it. It does not measure how much the consensus depends on the sample the
+models were fitted to: that requires refitting, and cannot be done from a
+\code{consensus_rank} object.
 
-The panel is taken from \code{cr$judges}, which \code{\link[=consensus_rank]{consensus_rank()}} retains for
-exactly this purpose. Resampling the judges measures how much the consensus
-depends on which sources of importance happened to be in the panel;
-resampling the data underneath them, which requires refitting and so cannot
-be done from \code{cr} alone, measures how much it depends on the sample.
+Resampling is done by drawing multinomial counts and passing them as judge
+weights rather than by materialising the resampled panel. The two are
+equivalent — \code{ConsRank} treats a weight of 3 exactly as three copies of the
+judge — and the weighted form avoids rebuilding a \verb{K x p} matrix per
+replicate. Judge weights supplied to \code{\link[=consensus_rank]{consensus_rank()}} are carried through
+by multiplying them into the bootstrap counts.
+}
+
+\section{On the cost}{
+
+Every replicate solves a Kemeny problem, which is NP-hard. Branch-and-bound
+is fast on panels that agree and pathological on panels that do not: with
+twelve variables and many ties — the normal case for importance scores, where
+unimportant variables all tie near zero — a single exact solve has been
+measured at over four minutes, which is a day and a half for five hundred
+replicates.
+
+The default is therefore to resample with the \code{"quick"} heuristic regardless
+of the algorithm used for the point estimate, and to say so. Pass
+\code{algorithm = "exact"} if the panel is small and you want optimality
+guarantees inside the bootstrap too.
+}
+
+\examples{
+judges <- rbind(
+  c(1, 2, 3, 4), c(1, 2, 3, 4), c(1, 3, 2, 4),
+  c(2, 1, 3, 4), c(1, 2, 4, 3), c(2, 1, 4, 3)
+)
+colnames(judges) <- c("income", "age", "balance", "region")
+cb <- rank_confsets(consensus_rank(judges), n_boot = 50)
+cb
+
+}
+\seealso{
+\code{\link[=prob_topk]{prob_topk()}}, \code{\link[=rank_select]{rank_select()}}, \code{\link[=autoplot.rank_confsets]{autoplot.rank_confsets()}}
 }

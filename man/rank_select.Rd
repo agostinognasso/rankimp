@@ -9,17 +9,34 @@ rank_select(cb, threshold = 10L)
 \arguments{
 \item{cb}{A \code{rank_confsets} object.}
 
-\item{threshold}{Rank above which a variable is retained.}
+\item{threshold}{Worst rank a selected variable may plausibly occupy.}
 }
 \value{
-A character vector of selected variable names.
+A character vector of selected variable names, in consensus order.
 }
 \description{
-Keeps the variables whose rank confidence set lies entirely above
-\code{threshold}. Selecting on the point estimate of the rank would ignore the
-fact that the ranking is estimated; selecting on the confidence set makes
-the claim "this variable really is among the most important" testable.
+Keeps the variables whose whole rank confidence set lies at or above
+\code{threshold}, that is, whose upper (worst) end is no worse than \code{threshold}.
 }
 \details{
-Not implemented yet: scheduled for phase F3.
+Selecting on the point estimate of the rank ignores that the ranking was
+estimated in the first place. Selecting on the confidence set makes the claim
+"this variable really is among the most important" one that the data can
+refuse: a variable whose interval straddles the threshold is not selected,
+and the reason is visible.
+
+The rule is deliberately conservative. It answers "which variables am I sure
+about", not "which variables should I keep": a variable excluded here may
+still carry signal, and \code{\link[=prob_topk]{prob_topk()}} quantifies how much doubt there is.
+}
+\examples{
+judges <- rbind(c(1, 2, 3, 4), c(1, 2, 3, 4), c(1, 2, 4, 3))
+colnames(judges) <- c("income", "age", "balance", "region")
+cb <- rank_confsets(consensus_rank(judges), n_boot = 50)
+
+rank_select(cb, threshold = 2)
+prob_topk(cb, k = 2)
+}
+\seealso{
+\code{\link[=rank_confsets]{rank_confsets()}}, \code{\link[=prob_topk]{prob_topk()}}
 }
