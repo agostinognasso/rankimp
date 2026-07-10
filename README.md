@@ -93,5 +93,5 @@ be falsified.
   median engine this package orchestrates.
 - [`e2tree`](https://cran.r-project.org/package=e2tree) — explains a
   forest with a single tree.
-- `proxima` — how the forest represents the data whose variables are
+- `Proximum` — how the forest represents the data whose variables are
   ranked here.

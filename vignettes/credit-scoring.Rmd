@@ -61,6 +61,6 @@ boosting fit are telling you about the fit, not about credit risk.
 
 ## Connecting back to the forest
 
-`proxima` asks how the forest represents the borrowers; `rankimp` asks which
+`Proximum` asks how the forest represents the borrowers; `rankimp` asks which
 variables drive that representation; `e2tree` renders the answer as a single
 tree. The three vignettes use the same portfolio on purpose.
