@@ -9,6 +9,7 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+has_rf <- requireNamespace("randomForest", quietly = TRUE)
 ```
 
 Two sources of instability, and they are not the same thing.
@@ -23,9 +24,12 @@ again. This is variability of the *estimand*, and multi-fold judges measure it.
 A ranking that survives the first but not the second is telling you the sample
 is too small to support the claim, not that the model is unstable.
 
-`rank_confsets()` addresses the first directly: it resamples the judges you
-already have. The second needs refitting, and so needs the ingestion layer of
-phase F1.
+`rank_confsets()` reaches both, and says which one it is measuring.
+`type = "judges"` resamples the panel you already have: whatever variability you
+built into it — seeds, folds, methods — is what the intervals reflect.
+`type = "data"` goes back to the data instead, drawing the rows with replacement
+and rebuilding the panel from scratch on every draw. The first is nearly free;
+the second costs a refit of every model per replicate.
 
 ## A panel that does not quite agree
 
@@ -96,6 +100,78 @@ the first place. The rule is conservative on purpose: it answers "which
 variables am I sure about", and `prob_topk()` quantifies the doubt about the
 rest.
 
+## Resampling the data instead of the panel
+
+Everything above resamples the panel. To ask the other question the models have
+to be refitted, and `type = "data"` does exactly that: each replicate draws the
+rows with replacement, refits every model, recomputes every judge and takes the
+consensus again. It needs a panel built by `importance_judges()`, which keeps
+the recipe — the fits, the data, the settings — so that none of it has to be
+handed over twice.
+
+The two questions can disagree, and thin data is where they do. Eight
+predictors, five of them real with deliberately close effects, three pure noise,
+and eighty rows:
+
+```{r, eval = has_rf}
+set.seed(7)
+n <- 80
+sim <- as.data.frame(matrix(rnorm(n * 8), n, 8))
+names(sim) <- paste0("x", 1:8)
+sim$y <- 2 * sim$x1 + 0.60 * sim$x2 + 0.55 * sim$x3 +
+  0.50 * sim$x4 + 0.45 * sim$x5 + rnorm(n, sd = 1)
+
+set.seed(1)
+forest <- randomForest::randomForest(y ~ ., data = sim, ntree = 200)
+
+set.seed(2)
+sim_panel <- importance_judges(forest, methods = c("permutation", "mdi"),
+                               data = sim, target = "y", seeds = 1:3)
+cr_sim <- consensus_rank(sim_panel)
+cr_sim
+```
+
+Six judges — two methods on three refits — and a consensus that reads like a
+clean ordering. Now put an interval around it twice:
+
+```{r, eval = has_rf}
+set.seed(3)
+by_judges <- rank_confsets(cr_sim, n_boot = 500)
+
+set.seed(3)
+by_data <- rank_confsets(cr_sim, type = "data")
+
+by_data
+```
+
+Read the table before reading on: some intervals do not contain the consensus
+rank they sit beside. That is the method, not a fault. Eighty rows drawn with
+replacement hold about fifty distinct ones, and a weak-but-real predictor is
+harder to place on that much less information, so its bootstrap ranks drift
+towards worse positions. Give a replicate all eighty distinct rows instead and
+it returns the point estimate exactly — which is how bootstrap bias is told
+apart from a panel rebuilt wrongly.
+
+Then ask each the same question — which variables would you certify in the top
+three? — and compare the answers:
+
+```{r, eval = has_rf}
+rank_select(by_judges, threshold = 3)
+rank_select(by_data, threshold = 3)
+```
+
+Where the two lists differ, the difference is the sample talking. A variable the
+panel agrees on but the data will not support is exactly the case the opening
+paragraphs describe: not an unstable model, a sample too small for the claim.
+
+Two things to know about how a data replicate is built. A `resamples` axis is
+replaced by the bootstrap's own in-bag/out-of-bag split, so a panel of
+`models × methods × V` judges is rebuilt with `models × methods` of them and
+each replicate votes with fewer judges than the point estimate did. And refits
+preserve the number of trees and `mtry` and nothing else, so a forest with a
+hand-tuned `nodesize` comes back at the engine's default — true of the `seeds`
+and `resamples` axes too.
+
 ## A note on cost
 
 Every bootstrap replicate solves a Kemeny problem, which is NP-hard. Exact
@@ -109,6 +185,10 @@ and reports which solver it used. On twenty tied panels of ten variables,
 `"quick"` returned the identical consensus and the identical `tau_x` as exact
 branch-and-bound. Pass `algorithm = "exact"` if you want the guarantee inside
 the bootstrap and the panel is small enough to afford it.
+
+A data replicate adds a refit of every model to that solve, which is why
+`n_boot` defaults to 50 there against 500 for the panel bootstrap, and why a run
+that looks long announces its projected cost before settling in.
 
 ## Related work
 

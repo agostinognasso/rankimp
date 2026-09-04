@@ -65,6 +65,13 @@ importance_to_rank <- function(x, ties_method = c("min", "average", "first")) {
 #' data-dependent importances are in-sample. Axes combine as a full grid:
 #' models × methods × seeds × resamples.
 #'
+#' @section The recipe:
+#' The panel keeps the arguments that built it — the fits, the data, the target,
+#' the methods, the axes and the backend settings — so that
+#' [rank_confsets()] can rebuild it on a bootstrap sample of the rows without
+#' being handed them all again. That makes the panel as large as the objects it
+#' refers to.
+#'
 #' @section Reproducibility:
 #' Permutation shuffles, SHAP row subsampling and refits draw from the session
 #' RNG; call `set.seed()` before this function for a reproducible panel.
@@ -90,7 +97,8 @@ importance_to_rank <- function(x, ties_method = c("min", "average", "first")) {
 #' @return An object of class `judges`: an integer ranking matrix with one row
 #'   per judge, carrying as attributes the `provenance` of each row (a tibble
 #'   with the judge's model, engine, method, seed and resample), the raw
-#'   `scores` behind the ranks, and the per-judge `weights` (or `NULL`).
+#'   `scores` behind the ranks, the per-judge `weights` (or `NULL`), and the
+#'   `recipe` that built it.
 #' @examplesIf requireNamespace("randomForest", quietly = TRUE)
 #' set.seed(1)
 #' fit <- randomForest::randomForest(mpg ~ ., data = mtcars, ntree = 50)
@@ -175,8 +183,9 @@ importance_judges <- function(fit_list,
       stop("The `resamples` axis needs the rsample package.", call. = FALSE)
     }
     id_cols <- setdiff(names(resamples), "splits")
-    splits <- resamples$splits
-    names(splits) <- do.call(paste, c(resamples[id_cols], list(sep = ".")))
+    labels <- do.call(paste, c(resamples[id_cols], list(sep = ".")))
+    splits <- Map(function(label, split) list(label = label, split = split),
+                  labels, resamples$splits)
   }
 
   if (!is.null(weights)) {
@@ -199,18 +208,55 @@ importance_judges <- function(fit_list,
     }
   }
 
+  panel <- panel_scores(
+    fit_list, engines = engines, predictors = predictors, methods = methods,
+    target = target, data = data,
+    splits = if (is.null(splits)) whole_data_split() else splits,
+    seeds = seeds, refitting = refitting, ...
+  )
+
+  ranks <- importance_to_rank(panel$scores, ties_method = ties_method)
+
+  judge_w <- NULL
+  if (!is.null(weights)) {
+    judge_w <- stats::setNames(unname(weights[panel$provenance$method]),
+                               panel$provenance$judge)
+  }
+
+  recipe <- list(
+    fit_list = fit_list, engines = engines, predictors = predictors,
+    methods = methods, data = data, target = target, seeds = seeds,
+    weights = weights, ties_method = ties_method,
+    out_of_sample = !is.null(splits), dots = list(...)
+  )
+
+  new_judges(ranks, provenance = panel$provenance, scores = panel$scores,
+             weights = judge_w, recipe = recipe)
+}
+
+#' Score every judge in one grid
+#'
+#' The loop shared by [importance_judges()] and the data bootstrap of
+#' [rank_confsets()]: each combination of split, seed, model and method becomes
+#' one row of scores and one row of provenance. It is the only place an
+#' importance backend is invoked, so a new method is added here and nowhere
+#' else.
+#'
+#' @param splits A list of split specifications, resolved by `resolve_split()`.
+#' @param refitting Refit each model on the split's training rows before
+#'   measuring importance. Always `TRUE` for the data bootstrap, and for the
+#'   seed and resample axes.
+#' @return A list with `scores` (a `K x p` matrix, judges in rows) and
+#'   `provenance` (a `K`-row tibble).
+#' @noRd
+panel_scores <- function(fit_list, engines, predictors, methods, target,
+                         data, splits, seeds = NULL, refitting = FALSE, ...) {
+  model_names <- names(fit_list)
   combos <- expand.grid(
-    resample = if (is.null(splits)) NA_character_ else names(splits),
+    split = seq_along(splits),
     seed = if (is.null(seeds)) NA_integer_ else seeds,
     model = model_names,
     KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
-  )
-
-  backend_of <- list(
-    permutation = importance_permutation,
-    mdi = importance_mdi,
-    shap = importance_shap,
-    loco = importance_loco
   )
 
   rows <- vector("list", nrow(combos) * length(methods))
@@ -219,23 +265,23 @@ importance_judges <- function(fit_list,
   for (i in seq_len(nrow(combos))) {
     model <- combos$model[i]
     seed <- combos$seed[i]
-    resample <- combos$resample[i]
-
-    train <- if (!is.na(resample)) rsample::analysis(splits[[resample]]) else data
-    eval_data <- if (!is.na(resample)) rsample::assessment(splits[[resample]]) else data
+    spec <- splits[[combos$split[i]]]
+    parts <- resolve_split(spec, data)
 
     fit <- fit_list[[model]]
     if (refitting) {
       if (!is.na(seed)) set.seed(seed)
-      fit <- refit(fit, x = train[predictors], y = train[[target]])
+      fit <- refit(fit, x = parts$train[predictors], y = parts$train[[target]])
     }
 
     for (method in methods) {
       score <- switch(method,
         mdi = importance_mdi(fit),
-        loco = importance_loco(fit, data = train, target = target,
-                               newdata = eval_data, ...),
-        backend_of[[method]](fit, data = eval_data, target = target, ...)
+        loco = importance_loco(fit, data = parts$train, target = target,
+                               newdata = parts$eval, ...),
+        permutation = importance_permutation(fit, data = parts$eval,
+                                             target = target, ...),
+        shap = importance_shap(fit, data = parts$eval, target = target, ...)
       )
       score <- score[predictors]
 
@@ -243,12 +289,12 @@ importance_judges <- function(fit_list,
       label <- paste0(
         model, ":", method,
         if (!is.na(seed)) paste0(":s", seed),
-        if (!is.na(resample)) paste0(":", resample)
+        if (!is.na(spec$label)) paste0(":", spec$label)
       )
       rows[[row]] <- score
       provenance[[row]] <- tibble::tibble(
         judge = label, model = model, engine = engines[[model]],
-        method = method, seed = seed, resample = resample
+        method = method, seed = seed, resample = spec$label
       )
     }
   }
@@ -257,25 +303,46 @@ importance_judges <- function(fit_list,
   provenance <- do.call(rbind, provenance)
   rownames(scores) <- provenance$judge
   colnames(scores) <- predictors
+  list(scores = scores, provenance = provenance)
+}
 
-  ranks <- importance_to_rank(scores, ties_method = ties_method)
+#' The single split that trains and evaluates on all of the data
+#' @noRd
+whole_data_split <- function() {
+  list(list(label = NA_character_))
+}
 
-  judge_w <- NULL
-  if (!is.null(weights)) {
-    judge_w <- stats::setNames(unname(weights[provenance$method]), provenance$judge)
+#' Materialise the training and evaluation frames of one split
+#'
+#' A split specification carries a `label` and one of: a `split`, an `rsplit`
+#' from rsample; `rows`, a pair of integer index vectors into `data`, which is
+#' how the data bootstrap passes its in-bag and out-of-bag rows; or neither,
+#' meaning the whole of `data` for both. The frames are built here rather than
+#' up front so that only one is alive at a time.
+#'
+#' @noRd
+resolve_split <- function(spec, data) {
+  if (!is.null(spec$split)) {
+    return(list(train = rsample::analysis(spec$split),
+                eval = rsample::assessment(spec$split)))
   }
-
-  new_judges(ranks, provenance = provenance, scores = scores, weights = judge_w)
+  if (!is.null(spec$rows)) {
+    return(list(train = data[spec$rows$train, , drop = FALSE],
+                eval = data[spec$rows$eval, , drop = FALSE]))
+  }
+  list(train = data, eval = data)
 }
 
 #' Construct a judges object
 #' @noRd
-new_judges <- function(ranks, provenance, scores, weights = NULL) {
+new_judges <- function(ranks, provenance, scores, weights = NULL,
+                       recipe = NULL) {
   structure(
     ranks,
     provenance = provenance,
     scores = scores,
     weights = weights,
+    recipe = recipe,
     class = c("judges", class(ranks))
   )
 }
@@ -296,7 +363,11 @@ print.judges <- function(x, ...) {
     cat("  resamples:", toString(unique(prov$resample)), "\n")
   }
   cat("  weights :",
-      if (is.null(attr(x, "weights"))) "none (equal)" else "by method", "\n\n")
+      if (is.null(attr(x, "weights"))) "none (equal)" else "by method", "\n")
+  if (!is.null(attr(x, "recipe"))) {
+    cat("  recipe  : kept; rank_confsets(type = \"data\") can rebuild this panel\n")
+  }
+  cat("\n")
   m <- x
   attributes(m) <- attributes(m)[c("dim", "dimnames")]
   print(utils::head(m, 10L))

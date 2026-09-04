@@ -22,6 +22,17 @@
   to the top `k`, and `rank_select()` keeps the variables whose whole interval
   clears a threshold. Resampling is done with multinomial judge weights rather
   than by rebuilding the panel, which `ConsRank` treats identically.
+* `rank_confsets(type = "data")` resamples the *rows* instead of the panel:
+  every replicate draws the data with replacement, refits every model and
+  rebuilds the panel from scratch. It answers the question the judge bootstrap
+  cannot — whether the ranking would survive another sample — and it needs a
+  panel from `importance_judges()`, which now carries the recipe that built it.
+  A replicate mirrors the recipe: a panel that judged out of sample keeps
+  judging out of sample, on the rows the bootstrap left behind. A `resamples`
+  axis is replaced by that in-bag/out-of-bag split, so each replicate votes with
+  `models x methods` judges rather than `models x methods x V`. Replicates that
+  fail — a response class too rare to survive a draw is the case that happens —
+  are dropped, counted and warned about instead of killing the run.
 * `item_consensus()` scores every judge against the consensus, so that a low
   `tau_x` can be read as a split panel rather than as noise.
 * `autoplot()` for `rank_confsets` draws the consensus ranking with its
@@ -55,6 +66,15 @@
 * `consensus_rank()` retains the panel and the judge weights in the returned
   object, as `$judges` and `$weights`. `rank_confsets()` bootstraps the judges
   and cannot do that from a ranking alone.
+* `importance_judges()` records the recipe that built the panel — the fits, the
+  data, the target, the methods, the axes and the backend settings — as an
+  attribute of the returned `judges` object, so that `rank_confsets()` can
+  rebuild the panel on a bootstrap sample without being handed them all again.
+  The panel is correspondingly as large as the objects it refers to.
+* `rank_confsets()` gained `type`, and `n_boot` now defaults by kind: 500
+  replicates for the judge bootstrap, 50 for the data bootstrap, which refits
+  every model on every replicate. A long data bootstrap announces its projected
+  cost, measured on the first replicate.
 
 ## Initial scaffolding
 

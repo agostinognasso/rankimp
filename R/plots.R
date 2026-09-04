@@ -47,7 +47,10 @@ autoplot.rank_confsets <- function(object, ...) {
       title = "Consensus ranking with bootstrap rank confidence sets",
       subtitle = paste0(
         format(100 * object$level), "% intervals over ", object$n_boot,
-        " resamples of the ", object$consensus$n_judges, " judges"
+        switch(object$type,
+          judges = paste0(" resamples of the ", object$n_units, " judges"),
+          data = paste0(" bootstrap samples of the ", object$n_units, " rows")
+        )
       )
     ) +
     ggplot2::theme_minimal()

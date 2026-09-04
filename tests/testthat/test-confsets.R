@@ -143,3 +143,169 @@ test_that("autoplot is exported, not merely imported", {
   # vignette caught this the hard way.
   expect_true("autoplot" %in% getNamespaceExports("rankimp"))
 })
+
+# --- Bootstrapping the data ------------------------------------------------
+
+test_that("the number of replicates defaults to the kind of bootstrap", {
+  expect_identical(resolve_n_boot(NULL, "judges"), 500L)
+  expect_identical(resolve_n_boot(NULL, "data"), 50L)
+  expect_identical(resolve_n_boot(7, "data"), 7L)
+})
+
+test_that("the data bootstrap needs a panel that carries its recipe", {
+  expect_error(
+    rank_confsets(consensus_rank(panel()), n_boot = 3, type = "data"),
+    "plain ranking matrix"
+  )
+})
+
+test_that("an mdi-only panel has no data to resample", {
+  skip_if_not_installed("randomForest")
+  J <- importance_judges(rf_reg, methods = "mdi")
+
+  expect_error(
+    rank_confsets(consensus_rank(J), n_boot = 3, type = "data"),
+    "needs the data"
+  )
+})
+
+test_that("the data bootstrap refits the models and returns usable sets", {
+  skip_if_not_installed("randomForest")
+  set.seed(20)
+  cr <- consensus_rank(importance_judges(
+    rf_reg, methods = c("permutation", "mdi"),
+    data = reg_data, target = "y", n_perm = 2
+  ))
+
+  set.seed(21)
+  cb <- rank_confsets(cr, n_boot = 10, type = "data")
+
+  expect_s3_class(cb, "rank_confsets")
+  expect_identical(cb$type, "data")
+  expect_identical(cb$n_units, nrow(reg_data))
+  expect_identical(cb$failed, 0L)
+  expect_identical(dim(cb$ranks), c(10L, 3L))
+  expect_identical(colnames(cb$ranks), c("x1", "x2", "x3"))
+  expect_false(anyNA(cb$ranks))
+  expect_true(all(cb$confsets$lower <= cb$confsets$upper))
+  expect_true(all(cb$ranks >= 1L & cb$ranks <= 3L))
+  expect_output(print(cb), "rows, with replacement")
+})
+
+test_that("a data replicate reproduces the point estimate on all the rows", {
+  # The interval of a data bootstrap need not contain the consensus rank, and
+  # asserting that it does would encode a false property: `n` rows drawn with
+  # replacement hold about 0.632n distinct ones, and a weak-but-real predictor
+  # is harder to place on that much less information. Measured on eight close
+  # predictors and eighty rows: the second variable sits at rank 2 in the point
+  # estimate and has a median bootstrap rank of 3.
+  #
+  # What must hold is the identity behind it — hand a replicate all the distinct
+  # rows and it reproduces the point estimate. That separates bootstrap bias,
+  # which is the method, from a panel rebuilt wrongly, which would be a bug.
+  skip_if_not_installed("randomForest")
+  set.seed(30)
+  cr <- consensus_rank(importance_judges(
+    rf_reg, methods = c("permutation", "mdi"),
+    data = reg_data, target = "y", n_perm = 2
+  ))
+  point <- as.integer(cr$ranking$rank[match(colnames(cr$judges),
+                                            cr$ranking$variable)])
+  recipe <- attr(cr$judges, "recipe")
+
+  set.seed(31)
+  rows <- sample.int(nrow(reg_data))
+  replicated <- data_replicate(recipe, rows, rows, colnames(cr$judges),
+                               engine = "quick", weights = NULL,
+                               ties = cr$ties)
+
+  expect_identical(replicated, point)
+})
+
+test_that("the data bootstrap is reproducible from a seed", {
+  skip_if_not_installed("randomForest")
+  set.seed(22)
+  cr <- consensus_rank(importance_judges(
+    rf_reg, methods = "permutation", data = reg_data, target = "y", n_perm = 2
+  ))
+
+  set.seed(23)
+  first <- rank_confsets(cr, n_boot = 4, type = "data")
+  set.seed(23)
+  again <- rank_confsets(cr, n_boot = 4, type = "data")
+
+  expect_identical(first$ranks, again$ranks)
+})
+
+test_that("a replicate that fails is dropped rather than fatal", {
+  # The failure this stands in for is real and was measured: a response class
+  # too rare to survive a bootstrap draw makes randomForest refuse to refit
+  # ("Can't have empty classes in y"). Mocking keeps the test off the RNG.
+  skip_if_not_installed("randomForest")
+  set.seed(24)
+  cr <- consensus_rank(importance_judges(
+    rf_reg, methods = "permutation", data = reg_data, target = "y", n_perm = 2
+  ))
+
+  honest <- panel_scores
+  attempt <- 0L
+  local_mocked_bindings(panel_scores = function(...) {
+    attempt <<- attempt + 1L
+    if (attempt == 1L) stop("engine exploded", call. = FALSE)
+    honest(...)
+  })
+
+  expect_warning(
+    cb <- rank_confsets(cr, n_boot = 4, type = "data"),
+    "1 of 4 bootstrap replicates failed"
+  )
+  expect_identical(cb$failed, 1L)
+  expect_true(anyNA(cb$ranks))
+  expect_true(all(cb$confsets$lower <= cb$confsets$upper))
+  expect_output(print(cb), "dropped")
+})
+
+test_that("a bootstrap in which everything fails is an error", {
+  skip_if_not_installed("randomForest")
+  set.seed(25)
+  cr <- consensus_rank(importance_judges(
+    rf_reg, methods = "permutation", data = reg_data, target = "y", n_perm = 2
+  ))
+
+  local_mocked_bindings(panel_scores = function(...) stop("engine exploded",
+                                                          call. = FALSE))
+  expect_error(rank_confsets(cr, n_boot = 3, type = "data"),
+               "Every bootstrap replicate failed")
+})
+
+test_that("a resample axis cannot carry its judge weights into the replicates", {
+  skip_if_not_installed("randomForest")
+  skip_if_not_installed("rsample")
+  set.seed(26)
+  J <- importance_judges(rf_reg, methods = c("permutation", "mdi"),
+                         data = reg_data, target = "y", n_perm = 2,
+                         resamples = rsample::vfold_cv(reg_data, v = 3))
+  # Six judges for the point estimate, two once the bootstrap takes over the
+  # resampling: per-judge weights cannot follow, and the user is told.
+  cr <- consensus_rank(J, weights = rep(1, nrow(J)))
+
+  set.seed(27)
+  expect_warning(
+    cb <- rank_confsets(cr, n_boot = 3, type = "data"),
+    "has 2 judges and the consensus was weighted over 6"
+  )
+  expect_identical(cb$failed, 0L)
+})
+
+test_that("autoplot names what was resampled", {
+  skip_if_not_installed("randomForest")
+  skip_if_not_installed("ggplot2")
+  set.seed(28)
+  cr <- consensus_rank(importance_judges(
+    rf_reg, methods = "permutation", data = reg_data, target = "y", n_perm = 2
+  ))
+
+  set.seed(29)
+  p <- autoplot(rank_confsets(cr, n_boot = 4, type = "data"))
+  expect_match(p$labels$subtitle, "bootstrap samples of the 120 rows")
+})

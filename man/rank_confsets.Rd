@@ -7,8 +7,9 @@
 \usage{
 rank_confsets(
   cr,
-  n_boot = 500L,
+  n_boot = NULL,
   level = 0.95,
+  type = c("judges", "data"),
   algorithm = c("quick", "exact", "fast", "decor")
 )
 
@@ -17,9 +18,14 @@ rank_confsets(
 \arguments{
 \item{cr}{A \code{consensus_rank} object.}
 
-\item{n_boot}{Number of bootstrap replicates.}
+\item{n_boot}{Number of bootstrap replicates. Defaults to 500 for
+\code{type = "judges"} and 50 for \code{type = "data"}, which refits every model on
+every replicate.}
 
 \item{level}{Coverage of the rank confidence sets.}
+
+\item{type}{What to resample: the \code{"judges"} in the panel, or the \code{"data"}
+the models were fitted to.}
 
 \item{algorithm}{Solver used for the replicates. \code{"quick"} by default;
 \code{"exact"}, \code{"fast"} and \code{"decor"} are also accepted, as in
@@ -33,13 +39,15 @@ rank_confsets(
 An object of class \code{rank_confsets}, a list with elements
 \code{confsets} (a tibble of variable, consensus rank, and the lower and upper
 ends of the rank interval), \code{ranks} (the \verb{n_boot x p} matrix of bootstrap
-ranks), \code{level}, \code{n_boot}, and \code{consensus} (the \code{cr} it came from).
+ranks), \code{level}, \code{n_boot}, \code{type}, \code{n_units} (how many judges or rows were
+resampled), \code{failed} (replicates dropped) and \code{consensus} (the \code{cr} it came
+from).
 }
 \description{
-A single consensus ranking is a point estimate. Resampling the judges gives
-the sampling distribution of each variable's position, from which follow the
-interval of plausible ranks for each variable and the probability that a
-variable belongs to the top \code{k}.
+A single consensus ranking is a point estimate. Resampling gives the sampling
+distribution of each variable's position, from which follow the interval of
+plausible ranks for each variable and the probability that a variable belongs
+to the top \code{k}.
 }
 \details{
 This is the inferential layer. It is what distinguishes the package from a
@@ -50,19 +58,64 @@ can.
 }
 \section{What is resampled}{
 
-The judges, drawn with replacement from \code{cr$judges}. This measures how much
-the consensus depends on \emph{which sources of importance happened to be in the
-panel} — a panel of ten permutation replicates and one SHAP judge will show
-it. It does not measure how much the consensus depends on the sample the
-models were fitted to: that requires refitting, and cannot be done from a
-\code{consensus_rank} object.
+Two questions, two answers, and they are not the same question.
 
-Resampling is done by drawing multinomial counts and passing them as judge
-weights rather than by materialising the resampled panel. The two are
-equivalent — \code{ConsRank} treats a weight of 3 exactly as three copies of the
-judge — and the weighted form avoids rebuilding a \verb{K x p} matrix per
-replicate. Judge weights supplied to \code{\link[=consensus_rank]{consensus_rank()}} are carried through
-by multiplying them into the bootstrap counts.
+\code{type = "judges"} draws the judges with replacement from \code{cr$judges}. It
+measures how much the consensus depends on \emph{which sources of importance
+happened to be in the panel} — a panel of ten permutation replicates and one
+SHAP judge will show it. Resampling is done by drawing multinomial counts and
+passing them as judge weights rather than by materialising the resampled
+panel. The two are equivalent — \code{ConsRank} treats a weight of 3 exactly as
+three copies of the judge — and the weighted form avoids rebuilding a
+\verb{K x p} matrix per replicate. Judge weights supplied to \code{\link[=consensus_rank]{consensus_rank()}}
+are carried through by multiplying them into the bootstrap counts.
+
+\code{type = "data"} draws the \emph{rows} with replacement, refits every model on the
+resampled data and rebuilds the whole panel from scratch, once per replicate.
+It measures how much the consensus depends on the sample the models were
+fitted to — the question a reader asks when they wonder whether the ranking
+would survive another dataset. It needs a panel built by
+\code{\link[=importance_judges]{importance_judges()}}, whose recipe carries the fits, the data and the
+settings; a plain ranking matrix has no models to refit.
+}
+
+\section{How a data replicate is built}{
+
+Each replicate draws \code{n} rows with replacement, refits every model on them
+with \code{\link[=importance_judges]{importance_judges()}}'s own machinery, and measures importance the way
+the recipe did: on the rows the bootstrap left out when the original panel
+judged out of sample (the \code{resamples} axis), on the resampled rows themselves
+when it judged in sample. Mirroring the recipe is what keeps the bootstrap
+distribution centred on the point estimate, without which a percentile
+interval means nothing.
+
+Two consequences worth stating plainly:
+\itemize{
+\item A \code{resamples} axis is \strong{replaced} by the bootstrap's own in-bag/out-of-bag
+split, so a panel of \verb{models x methods x V} judges is rebuilt with
+\verb{models x methods} of them. Each replicate votes with fewer judges than the
+point estimate did, which makes its consensus noisier and the intervals, if
+anything, wider.
+\item Refits preserve the number of trees and \code{mtry} and nothing else. A forest
+fitted with a hand-tuned \code{nodesize} is refitted at the engine's default,
+here as on the \code{seeds} and \code{resamples} axes.
+}
+
+One consequence to expect rather than to debug: the interval need not contain
+the consensus rank. \code{n} rows drawn with replacement hold about 0.632\code{n}
+distinct ones, and a weak-but-real predictor is harder to place on that much
+less information, so its bootstrap ranks drift towards worse positions.
+Measured on eight predictors with close effects and eighty rows, the second
+variable of the consensus had a median bootstrap rank of three. Hand a
+replicate all the distinct rows instead and it returns the point estimate
+exactly — which is how this was told apart from a panel rebuilt wrongly.
+
+A replicate that fails is dropped rather than allowed to kill the run, and
+the count of dropped replicates is warned about and kept in \code{failed}. The
+failure that actually happens is a response class too rare to survive a
+bootstrap draw: \code{randomForest} refuses to refit on a sample that lost one
+(\code{ranger} drops the level and carries on). A rare \emph{predictor} level is
+harmless, because subsetting a factor keeps its levels.
 }
 
 \section{On the cost}{
@@ -78,6 +131,11 @@ The default is therefore to resample with the \code{"quick"} heuristic regardles
 of the algorithm used for the point estimate, and to say so. Pass
 \code{algorithm = "exact"} if the panel is small and you want optimality
 guarantees inside the bootstrap too.
+
+A data replicate additionally refits every model and recomputes every
+importance, which is orders of magnitude dearer than reweighting a panel that
+already exists. Hence the smaller default for \code{n_boot}, and a message
+reporting the projected cost when the run looks like a long one.
 }
 
 \examples{
@@ -89,6 +147,14 @@ colnames(judges) <- c("income", "age", "balance", "region")
 cb <- rank_confsets(consensus_rank(judges), n_boot = 50)
 cb
 
+\dontshow{if (requireNamespace("randomForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+# Resampling the data instead: every replicate refits the forest.
+set.seed(1)
+fit <- randomForest::randomForest(mpg ~ ., data = mtcars, ntree = 50)
+J <- importance_judges(fit, methods = c("permutation", "mdi"),
+                       data = mtcars, target = "mpg", n_perm = 2)
+rank_confsets(consensus_rank(J), n_boot = 10, type = "data")
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=prob_topk]{prob_topk()}}, \code{\link[=rank_select]{rank_select()}}, \code{\link[=autoplot.rank_confsets]{autoplot.rank_confsets()}}

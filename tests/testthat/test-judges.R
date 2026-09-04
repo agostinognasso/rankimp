@@ -163,3 +163,33 @@ test_that("a judges panel prints its axes", {
   out <- capture.output(print(J))
   expect_match(out[1], "<judges> 1 judges x 3 variables", fixed = TRUE)
 })
+
+test_that("the panel records the recipe that built it", {
+  skip_if_not_installed("randomForest")
+  set.seed(15)
+  J <- importance_judges(rf_reg, methods = c("permutation", "mdi"),
+                         data = reg_data, target = "y", n_perm = 2)
+
+  recipe <- attr(J, "recipe")
+  expect_identical(recipe$methods, c("permutation", "mdi"))
+  expect_identical(recipe$target, "y")
+  expect_identical(recipe$predictors, c("x1", "x2", "x3"))
+  expect_identical(recipe$dots$n_perm, 2)
+  expect_false(recipe$out_of_sample)
+  expect_identical(names(recipe$fit_list), "model1")
+  expect_output(print(J), "recipe")
+
+  # The data bootstrap reads the recipe off `cr$judges`, so it has to survive
+  # the trip through consensus_rank().
+  expect_identical(attr(consensus_rank(J)$judges, "recipe"), recipe)
+})
+
+test_that("a resample axis marks the panel as judged out of sample", {
+  skip_if_not_installed("randomForest")
+  skip_if_not_installed("rsample")
+  set.seed(16)
+  J <- importance_judges(rf_reg, methods = "mdi", data = reg_data, target = "y",
+                         resamples = rsample::vfold_cv(reg_data, v = 2))
+
+  expect_true(attr(J, "recipe")$out_of_sample)
+})

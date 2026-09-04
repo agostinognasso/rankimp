@@ -52,7 +52,8 @@ The expanded per-judge weights travel with the panel and are picked up by
 An object of class \code{judges}: an integer ranking matrix with one row
 per judge, carrying as attributes the \code{provenance} of each row (a tibble
 with the judge's model, engine, method, seed and resample), the raw
-\code{scores} behind the ranks, and the per-judge \code{weights} (or \code{NULL}).
+\code{scores} behind the ranks, the per-judge \code{weights} (or \code{NULL}), and the
+\code{recipe} that built it.
 }
 \description{
 Builds the ranking matrix consumed by \code{\link[=consensus_rank]{consensus_rank()}} from any
@@ -86,6 +87,15 @@ argument, is read off the refit.
 Without \code{seeds} or \code{resamples} the supplied fits are used as they are, and
 data-dependent importances are in-sample. Axes combine as a full grid:
 models × methods × seeds × resamples.
+}
+
+\section{The recipe}{
+
+The panel keeps the arguments that built it — the fits, the data, the target,
+the methods, the axes and the backend settings — so that
+\code{\link[=rank_confsets]{rank_confsets()}} can rebuild it on a bootstrap sample of the rows without
+being handed them all again. That makes the panel as large as the objects it
+refers to.
 }
 
 \section{Reproducibility}{
