@@ -62,13 +62,21 @@ simulate_data <- function(beta, n) {
 one_replicate <- function(i, beta, n, data_boot) {
   variables <- names(beta)
   truth <- rank(-beta, ties.method = "min")
+  # The seed axis gets its own streams in every replicate. Reusing a fixed
+  # `1:3` correlates the estimator's randomness across the Monte Carlo: the
+  # same RNG stream draws the same sequence of `mtry` candidate subsets every
+  # time, which favours some column positions systematically and does not
+  # average out. Measured on three exchangeable noise predictors: with fixed
+  # seeds the leftmost won 34.5% against 50% (Wilcoxon p = 1e-07) and 32.5% of
+  # pairs tied; with per-replicate seeds, 50.5% and p = 0.48.
+  seeds <- 3L * (as.integer(i) - 1L) + 1:3
 
   attempt <- try({
     d <- simulate_data(beta, n)
     fit <- randomForest(y ~ ., data = d, ntree = NTREE)
     cr <- consensus_rank(importance_judges(
       fit, methods = c("permutation", "mdi"),
-      data = d, target = "y", seeds = 1:3
+      data = d, target = "y", seeds = seeds
     ))
     by_judges <- rank_confsets(cr, n_boot = JUDGE_BOOT, level = LEVEL)
     by_data <- suppressMessages(

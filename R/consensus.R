@@ -10,6 +10,21 @@
 #' is what distinguishes a Kemeny median from an average of Borda scores.
 #' Set `ties = FALSE` to force a linear order.
 #'
+#' @section When the median is not unique:
+#' Several rankings can attain the same minimum, and `ConsRank` returns them all.
+#' Reporting one of them would be arbitrary in a way that is not neutral: which
+#' comes first depends on the order of the columns, so a variable can gain a
+#' position by sitting to the left. That was measured — on a symmetric panel,
+#' permuting the columns changed the winner; in a simulation with three
+#' exchangeable noise predictors the leftmost took the best rank systematically,
+#' and the situation is not rare, arising in 57% to 98% of replicates there.
+#'
+#' The consensus reported is therefore the optimal set combined: each variable
+#' takes its average position over the optima, and those that come out equal are
+#' tied. Variables the objective genuinely cannot separate are reported as
+#' equal, which is the point of taking a median over weak orderings. The whole
+#' set remains in `consensus_all`.
+#'
 #' @section Choice of algorithm:
 #' Finding the Kemeny median is NP-hard, so `algorithm = "auto"` picks by
 #' problem size:
@@ -48,6 +63,9 @@
 #'   agreement between the consensus and the judges), `consensus_all` (every
 #'   optimal consensus found, one per row), `judges` and `weights` (the panel
 #'   as supplied), and the settings used.
+#'
+#'   When several rankings attain the minimum, `ranking` holds their combination
+#'   rather than an arbitrary one of them: see the section below.
 #'
 #'   The panel is kept because the consensus alone is a point estimate:
 #'   [rank_confsets()] resamples the judges to put an interval around it, and it
@@ -98,7 +116,7 @@ consensus_rank <- function(x,
 
   consensus_all <- as.matrix(fit$Consensus)
   colnames(consensus_all) <- colnames(x)
-  best <- consensus_all[1L, ]
+  best <- combine_optima(consensus_all)
 
   structure(
     list(
@@ -119,6 +137,31 @@ consensus_rank <- function(x,
     ),
     class = "consensus_rank"
   )
+}
+
+#' Combine several equally optimal consensus rankings into one
+#'
+#' The Kemeny median need not be unique, and `ConsRank` returns every ranking
+#' that attains the minimum. Taking the first is not neutral: which one comes
+#' first depends on the order of the columns. On a symmetric panel of three
+#' indistinguishable variables, permuting the columns changed which variable won,
+#' and in a simulation with three exchangeable noise predictors the leftmost took
+#' the best rank systematically — across designs where several optima arose in
+#' 57% to 98% of replicates.
+#'
+#' Averaging each variable's position over the optimal set and re-ranking with
+#' ties lets the variables the objective cannot separate come out equal, which is
+#' what a Kemeny median over weak orderings is for. The full set stays available
+#' as `consensus_all`.
+#'
+#' @param consensus_all Matrix of optimal consensus rankings, one per row.
+#' @return A named integer vector of ranks, one per variable.
+#' @noRd
+combine_optima <- function(consensus_all) {
+  if (nrow(consensus_all) == 1L) {
+    return(consensus_all[1L, ])
+  }
+  rank(colMeans(consensus_all), ties.method = "min")
 }
 
 #' Call ConsRank without its running commentary
@@ -219,7 +262,7 @@ print.consensus_rank <- function(x, ...) {
   cat("  tau_x     :", round(x$tau, 4), "\n")
   if (x$multiple) {
     cat("  note      :", nrow(x$consensus_all), "equally optimal consensus rankings;",
-        "the first is shown\n")
+        "combined, so variables they order differently are tied\n")
   }
   cat("\n")
   print(x$ranking, n = Inf)

@@ -47,7 +47,13 @@ item_consensus <- function(cr) {
     stop("`cr` must be a `consensus_rank` object.", call. = FALSE)
   }
   judges <- cr$judges
-  consensus <- matrix(cr$consensus_all[1L, ], nrow = 1L)
+  # The reported consensus, not an arbitrary one of the optima: when the median
+  # is not unique `consensus_rank()` combines them and ties what they disagree
+  # about, and a judge has to be scored against what the user was shown.
+  consensus <- matrix(
+    cr$ranking$rank[match(colnames(judges), cr$ranking$variable)],
+    nrow = 1L
+  )
 
   taus <- vapply(
     seq_len(nrow(judges)),

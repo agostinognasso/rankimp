@@ -213,7 +213,7 @@ boot_judges <- function(cr, n_boot, engine) {
       algorithm = engine,
       full = !cr$ties
     )
-    ranks[b, ] <- as.integer(as.matrix(fit$Consensus)[1L, ])
+    ranks[b, ] <- as.integer(combine_optima(as.matrix(fit$Consensus)))
   }
 
   list(ranks = ranks, n_units = k, failed = 0L)
@@ -356,7 +356,7 @@ data_replicate <- function(recipe, in_bag, eval_rows, variables, engine,
     algorithm = engine,
     full = !ties
   )
-  as.integer(as.matrix(fit$Consensus)[1L, ])
+  as.integer(combine_optima(as.matrix(fit$Consensus)))
 }
 
 #' Report what a data bootstrap is about to cost, when it is worth reporting

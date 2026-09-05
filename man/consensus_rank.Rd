@@ -37,6 +37,9 @@ agreement between the consensus and the judges), \code{consensus_all} (every
 optimal consensus found, one per row), \code{judges} and \code{weights} (the panel
 as supplied), and the settings used.
 
+When several rankings attain the minimum, \code{ranking} holds their combination
+rather than an arbitrary one of them: see the section below.
+
 The panel is kept because the consensus alone is a point estimate:
 \code{\link[=rank_confsets]{rank_confsets()}} resamples the judges to put an interval around it, and it
 cannot do that from a ranking.
@@ -53,6 +56,23 @@ that the judges genuinely cannot separate \emph{should} come out equal, which
 is what distinguishes a Kemeny median from an average of Borda scores.
 Set \code{ties = FALSE} to force a linear order.
 }
+\section{When the median is not unique}{
+
+Several rankings can attain the same minimum, and \code{ConsRank} returns them all.
+Reporting one of them would be arbitrary in a way that is not neutral: which
+comes first depends on the order of the columns, so a variable can gain a
+position by sitting to the left. That was measured — on a symmetric panel,
+permuting the columns changed the winner; in a simulation with three
+exchangeable noise predictors the leftmost took the best rank systematically,
+and the situation is not rare, arising in 57\% to 98\% of replicates there.
+
+The consensus reported is therefore the optimal set combined: each variable
+takes its average position over the optima, and those that come out equal are
+tied. Variables the objective genuinely cannot separate are reported as
+equal, which is the point of taking a median over weak orderings. The whole
+set remains in \code{consensus_all}.
+}
+
 \section{Choice of algorithm}{
 
 Finding the Kemeny median is NP-hard, so \code{algorithm = "auto"} picks by
