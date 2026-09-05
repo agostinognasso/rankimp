@@ -68,6 +68,31 @@
 #' (`ranger` drops the level and carries on). A rare *predictor* level is
 #' harmless, because subsetting a factor keeps its levels.
 #'
+#' @section What the level actually buys:
+#' A nominal 95% set does not cover the true rank 95% of the time, and the
+#' simulation that measures it ships with the package as
+#' `inst/simulations/rank-coverage.R`. Eight predictors, five of them real,
+#' 300 replicates per cell, nominal 0.95; coverage of the true rank of the
+#' signal variables:
+#'
+#' * Effects that separate cleanly — 0.895 at `n = 80` and 0.949 at `n = 200`
+#'   for `type = "data"`, against 0.789 and 0.921 for `type = "judges"`.
+#' * Effects close enough that the middle of the ranking is barely identifiable
+#'   — 0.799, 0.833 and 0.892 at `n` of 80, 200 and 500 for `type = "data"`,
+#'   against 0.582, 0.663 and 0.722 for `type = "judges"`.
+#'
+#' Two things follow. The data bootstrap covered better than the judge bootstrap
+#' in every one of the twelve combinations measured, which is the reason it
+#' exists. And neither reaches the nominal level while the ordering is not
+#' identifiable from the sample: at `n = 80` with close effects the point
+#' estimate recovered the true order of the five signal variables in 3% of
+#' replicates, and no interval can rescue a ranking the data does not support.
+#'
+#' Read a rank confidence set as a statement about what the evidence rules out,
+#' not as a calibrated guarantee. The rank is a discrete, non-smooth functional
+#' and a percentile bootstrap is not automatically valid for such functionals;
+#' the figures above are measured on those designs, not promised in general.
+#'
 #' @section On the cost:
 #' Every replicate solves a Kemeny problem, which is NP-hard. Branch-and-bound
 #' is fast on panels that agree and pathological on panels that do not: with

@@ -172,6 +172,30 @@ preserve the number of trees and `mtry` and nothing else, so a forest with a
 hand-tuned `nodesize` comes back at the engine's default — true of the `seeds`
 and `resamples` axes too.
 
+## How much is a 95% set worth?
+
+Less than 95%, and the package would rather say so than let you assume
+otherwise. `inst/simulations/rank-coverage.R` measures it: eight predictors,
+five of them real, 300 simulated datasets per cell, and a check of how often the
+nominal 95% set contains the rank the generating coefficients imply.
+
+For the signal variables, resampling the data covered
+
+* 0.895 at `n = 80` and 0.949 at `n = 200` when the effects separate cleanly;
+* 0.799, 0.833 and 0.892 at `n` of 80, 200 and 500 when they are close enough
+  that the middle of the ranking is barely identifiable.
+
+Resampling the judges covered less in every one of the twelve combinations
+measured — 0.582 against 0.799 in the hardest cell — which is the reason
+`type = "data"` exists.
+
+The shortfall is not a defect to be tuned away. At `n = 80` with close effects
+the point estimate recovered the true order of the five signal variables in 3%
+of replicates: the ranking is not identifiable from that sample, and no interval
+can rescue it. Read a rank confidence set as a statement about what the evidence
+rules out. The rank is a discrete, non-smooth functional, and a percentile
+bootstrap is not automatically valid for such things.
+
 ## A note on cost
 
 Every bootstrap replicate solves a Kemeny problem, which is NP-hard. Exact

@@ -50,6 +50,21 @@
   at `p = 11` and 280 s at `p = 12`, while `"quick"` returned the identical
   consensus and `tau_x` on twenty out of twenty tied panels at `p = 10`.
 
+* `consensus_rank()` no longer reports an arbitrary one of the equally optimal
+  consensus rankings. The Kemeny median need not be unique and `ConsRank`
+  returns every ranking attaining the minimum; taking the first was not
+  neutral, because which came first depended on the order of the columns. On a
+  symmetric panel of three indistinguishable variables, permuting the columns
+  changed the winner, and in simulation a variable of pure noise outranked a
+  real one by sitting further left. Several optima arose in 57% to 98% of
+  replicates there, so this was the normal case rather than an edge case. The
+  optima are now combined — each variable takes its average position over them
+  and those that come out equal are tied — so variables the objective cannot
+  separate are reported as equal. The full set stays in `consensus_all`. The
+  same correction applies to both bootstrap branches of `rank_confsets()` and
+  to `item_consensus()`, which now scores judges against the consensus the user
+  was shown.
+
 ## Correctness
 
 * `consensus_rank()` no longer leaks `ConsRank`'s console output on degenerate
@@ -60,6 +75,14 @@
   check tested `any(x < 1)`, which admitted rankings starting at 2 and admitted
   a matrix of importance scores, contradicting the documented contract. The
   error now names the offending judges and points at `importance_to_rank()`.
+
+* `?rank_confsets` and `vignette("stability")` now report the coverage the
+  intervals were measured to have rather than leaving the nominal level to
+  speak for itself. A nominal 95% set covered the true rank of a signal
+  variable between 0.58 and 0.95 of the time depending on the design, the
+  sample size and which bootstrap was used; the data bootstrap covered better
+  than the judge bootstrap in all twelve combinations measured. The simulation
+  ships as `inst/simulations/rank-coverage.R`.
 
 ## API
 
