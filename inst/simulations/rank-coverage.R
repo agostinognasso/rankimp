@@ -138,14 +138,36 @@ for (k in seq_len(nrow(cells))) {
 
 # --- summarise -------------------------------------------------------------
 
-covers <- function(lo, hi, truth) lo <= truth & truth <= hi
+# Coverage against a truth that contains ties.
+#
+# `k` variables tied at rank `t` occupy positions `t .. t + k - 1` in any
+# ranking, in an order nothing in the data determines. The consensus never
+# returns them tied — importance scores are continuous, so two are never exactly
+# equal, and this was checked: across every cell the noise block came out tied
+# 0.000 of the time. Demanding that each of their sets contain `t` therefore
+# asks two of the three for something structurally unavailable, and measures the
+# encoding rather than the method. A set covers when it meets the block.
+#
+# For a truth without ties the block is a single rank and this is the ordinary
+# criterion.
+rank_block_hi <- function(truth) {
+  sizes <- table(truth)
+  as.integer(truth) + as.integer(sizes[as.character(truth)]) - 1L
+}
+
+covers <- function(lo, hi, truth, block_hi) lo <= block_hi & hi >= truth
 
 summarise_cell <- function(x) {
   block <- ifelse(x$variable %in% SIGNAL, "signal", "noise")
+  # The truth is the same in every replicate, so the block bounds are read off
+  # one of them and mapped back by variable.
+  one <- x[x$replicate == x$replicate[1], c("variable", "truth")]
+  bounds <- setNames(rank_block_hi(one$truth), one$variable)
+  block_hi <- bounds[x$variable]
   per <- function(kind) {
     lo <- x[[paste0(kind, "_lo")]]
     hi <- x[[paste0(kind, "_hi")]]
-    hit <- covers(lo, hi, x$truth)
+    hit <- covers(lo, hi, x$truth, block_hi)
     reps <- split(hit, x$replicate)
     data.frame(
       bootstrap = kind,
@@ -182,10 +204,12 @@ print(summary_table, digits = 3)
 
 # Coverage per variable, for the headline cell.
 headline <- raw[["close_n80_boot50"]]
+one <- headline[headline$replicate == headline$replicate[1], c("variable", "truth")]
+bhi <- setNames(rank_block_hi(one$truth), one$variable)
 by_variable <- do.call(rbind, lapply(split(headline, headline$variable), function(v) {
   data.frame(variable = v$variable[1], truth = v$truth[1],
-             judges = mean(covers(v$judges_lo, v$judges_hi, v$truth)),
-             data = mean(covers(v$data_lo, v$data_hi, v$truth)))
+             judges = mean(covers(v$judges_lo, v$judges_hi, v$truth, bhi[v$variable[1]])),
+             data = mean(covers(v$data_lo, v$data_hi, v$truth, bhi[v$variable[1]])))
 }))
 cat("\nPer variable, close design at n = 80:\n")
 print(by_variable, row.names = FALSE, digits = 3)
