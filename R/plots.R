@@ -1,13 +1,83 @@
-#' Visualise a consensus ranking
+#' Visualise a consensus ranking against the panel it came from
 #'
-#' Not implemented yet: scheduled for phase F4.
+#' The consensus rank of each variable, drawn on top of every rank the judges
+#' actually gave it. Point area is the number of judges at that rank, so the
+#' picture is exact rather than jittered.
+#'
+#' What it is for: a consensus ranking reports one number per variable, and
+#' that number is equally consistent with a panel that agreed and a panel that
+#' was split down the middle. The spread behind each point is the difference,
+#' and it is per variable — `tau_x` and [item_consensus()] measure agreement
+#' per *judge*, which is a different question and will not tell you *which*
+#' variables the panel could not place.
+#'
+#' Variables the consensus could not separate come out at the same rank and are
+#' drawn at the same height; that is a finding, not a drawing artefact. Where
+#' the Kemeny median is not unique the plot plots the combined ranking, the one
+#' [consensus_rank()] reports, and says so in the subtitle.
+#'
+#' The rank axis is reversed, so rank 1 — the most important variable — sits at
+#' the top.
 #'
 #' @param object A `consensus_rank` object.
 #' @param ... Reserved for future use.
 #' @return A `ggplot` object.
+#' @examples
+#' judges <- rbind(
+#'   permutation = c(1, 2, 3, 4), impurity = c(1, 3, 2, 4), loco = c(2, 1, 3, 4)
+#' )
+#' colnames(judges) <- c("income", "age", "balance", "region")
+#' autoplot(consensus_rank(judges))
+#' @seealso [consensus_rank()], [item_consensus()], [autoplot.rank_confsets()]
 #' @export
 autoplot.consensus_rank <- function(object, ...) {
-  not_implemented("autoplot.consensus_rank", "F4")
+  ranking <- object$ranking
+  judges <- object$judges
+  # Ties put several variables on one rank, so the drawing order is the
+  # consensus order and not the rank itself. `rev()` because `coord_flip()`
+  # builds the discrete axis from the bottom.
+  levels_by_rank <- rev(ranking$variable)
+
+  # `judges` is judges x variables and `as.vector()` reads it down the columns,
+  # which is the order `each = nrow(judges)` repeats the names in.
+  panel <- data.frame(
+    variable = factor(rep(colnames(judges), each = nrow(judges)),
+                      levels = levels_by_rank),
+    rank = as.vector(judges)
+  )
+  consensus <- data.frame(
+    variable = factor(ranking$variable, levels = levels_by_rank),
+    rank = ranking$rank
+  )
+
+  ggplot2::ggplot(panel, ggplot2::aes(x = .data$variable, y = .data$rank)) +
+    ggplot2::geom_count(colour = "grey60") +
+    ggplot2::geom_point(
+      data = consensus, ggplot2::aes(colour = "consensus"), size = 2.6
+    ) +
+    ggplot2::scale_y_reverse(breaks = seq_len(object$n_items)) +
+    # A count of judges has no half. The default continuous breaks offer them.
+    ggplot2::scale_size_continuous(breaks = integer_breaks) +
+    ggplot2::scale_colour_manual(values = c(consensus = "firebrick")) +
+    ggplot2::coord_flip() +
+    ggplot2::labs(
+      x = NULL,
+      y = "rank",
+      size = "judges",
+      colour = NULL,
+      title = "Consensus ranking over the panel that produced it",
+      subtitle = paste0(
+        object$n_judges, " judges", if (object$weighted) ", weighted" else "",
+        "; tau_x = ", format(round(object$tau, 3)),
+        if (object$multiple) {
+          paste0("; ", nrow(object$consensus_all),
+                 " equally optimal consensus rankings combined")
+        } else {
+          ""
+        }
+      )
+    ) +
+    ggplot2::theme_minimal()
 }
 
 #' Visualise the rank confidence sets
@@ -118,4 +188,15 @@ autoplot.judge_clusters <- function(object, ...) {
       )
     ) +
     ggplot2::theme_minimal()
+}
+
+#' Whole-numbered breaks for an axis or legend counting things
+#'
+#' @param limits Range ggplot2 asks the breaks for.
+#' @return An integer vector inside `limits`.
+#' @noRd
+integer_breaks <- function(limits) {
+  candidates <- unique(round(pretty(limits)))
+  keep <- candidates >= max(1, floor(min(limits))) & candidates <= ceiling(max(limits))
+  candidates[keep]
 }

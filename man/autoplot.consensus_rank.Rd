@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{autoplot.consensus_rank}
 \alias{autoplot.consensus_rank}
-\title{Visualise a consensus ranking}
+\title{Visualise a consensus ranking against the panel it came from}
 \usage{
 \method{autoplot}{consensus_rank}(object, ...)
 }
@@ -15,5 +15,33 @@
 A \code{ggplot} object.
 }
 \description{
-Not implemented yet: scheduled for phase F4.
+The consensus rank of each variable, drawn on top of every rank the judges
+actually gave it. Point area is the number of judges at that rank, so the
+picture is exact rather than jittered.
+}
+\details{
+What it is for: a consensus ranking reports one number per variable, and
+that number is equally consistent with a panel that agreed and a panel that
+was split down the middle. The spread behind each point is the difference,
+and it is per variable — \code{tau_x} and \code{\link[=item_consensus]{item_consensus()}} measure agreement
+per \emph{judge}, which is a different question and will not tell you \emph{which}
+variables the panel could not place.
+
+Variables the consensus could not separate come out at the same rank and are
+drawn at the same height; that is a finding, not a drawing artefact. Where
+the Kemeny median is not unique the plot plots the combined ranking, the one
+\code{\link[=consensus_rank]{consensus_rank()}} reports, and says so in the subtitle.
+
+The rank axis is reversed, so rank 1 — the most important variable — sits at
+the top.
+}
+\examples{
+judges <- rbind(
+  permutation = c(1, 2, 3, 4), impurity = c(1, 3, 2, 4), loco = c(2, 1, 3, 4)
+)
+colnames(judges) <- c("income", "age", "balance", "region")
+autoplot(consensus_rank(judges))
+}
+\seealso{
+\code{\link[=consensus_rank]{consensus_rank()}}, \code{\link[=item_consensus]{item_consensus()}}, \code{\link[=autoplot.rank_confsets]{autoplot.rank_confsets()}}
 }

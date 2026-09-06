@@ -127,3 +127,59 @@ test_that("unnamed columns get placeholder variable names", {
 
   expect_identical(cr$ranking$variable, c("V1", "V2", "V3"))
 })
+
+test_that("autoplot draws the consensus over every rank the judges gave", {
+  skip_if_not_installed("ggplot2")
+  judges <- rbind(
+    permutation = c(1, 2, 3, 4), impurity = c(1, 3, 2, 4), loco = c(2, 1, 3, 4)
+  )
+  colnames(judges) <- c("income", "age", "balance", "region")
+  cr <- consensus_rank(judges)
+
+  p <- autoplot(cr)
+
+  expect_s3_class(p, "ggplot")
+  expect_no_error(built <- ggplot2::ggplot_build(p))
+  # One point per judge per variable in the count layer, and one consensus
+  # point per variable in the second: the panel is drawn, not summarised.
+  expect_equal(sum(built$data[[1]]$n), nrow(judges) * ncol(judges))
+  expect_identical(nrow(built$data[[2]]), ncol(judges))
+  expect_match(p$labels$subtitle, "3 judges")
+  expect_match(p$labels$subtitle, "tau_x = ")
+})
+
+test_that("autoplot says when the consensus combines several optima", {
+  skip_if_not_installed("ggplot2")
+  # Three variables the panel cannot order at all: every ranking is a median.
+  judges <- rbind(a = c(1, 2, 3), b = c(2, 3, 1), c = c(3, 1, 2))
+  colnames(judges) <- c("x", "y", "z")
+  cr <- consensus_rank(judges)
+  skip_if_not(cr$multiple)
+
+  expect_match(autoplot(cr)$labels$subtitle, "equally optimal")
+})
+
+test_that("a count legend is broken on whole judges", {
+  # Half a judge never gave a rank to anything, and `pretty()` offers halves on
+  # exactly the small ranges a panel of judges produces: 1, 1.2, 1.4 ... for
+  # two, 1, 1.5, 2 ... for three.
+  for (upper in 2:30) {
+    breaks <- integer_breaks(c(1, upper))
+    expect_true(all(breaks %% 1 == 0))
+    expect_true(all(breaks >= 1 & breaks <= upper))
+    expect_false(anyDuplicated(breaks) > 0)
+  }
+  expect_identical(integer_breaks(c(1, 2)), c(1, 2))
+})
+
+test_that("autoplot weighs in on weights", {
+  skip_if_not_installed("ggplot2")
+  judges <- rbind(a = c(1, 2, 3, 4), b = c(1, 3, 2, 4), c = c(2, 1, 3, 4))
+  colnames(judges) <- c("income", "age", "balance", "region")
+
+  plain <- autoplot(consensus_rank(judges))
+  weighted <- autoplot(consensus_rank(judges, weights = c(3, 1, 1)))
+
+  expect_no_match(plain$labels$subtitle, "weighted")
+  expect_match(weighted$labels$subtitle, "weighted")
+})
