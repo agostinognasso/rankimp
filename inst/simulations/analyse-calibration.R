@@ -20,10 +20,12 @@ rank_block_hi <- function(truth) {
   as.integer(truth) + as.integer(sizes[as.character(truth)]) - 1L
 }
 
+# `type = 1` and `na.rm`: the rule `rank_confsets()` itself applies, so that a
+# figure read off the stored draws is the figure the package would have given.
 interval <- function(draws, level) {
   a <- (1 - level) / 2
-  c(stats::quantile(draws, a, type = 1L, names = FALSE),
-    stats::quantile(draws, 1 - a, type = 1L, names = FALSE))
+  c(stats::quantile(draws, a, type = 1L, names = FALSE, na.rm = TRUE),
+    stats::quantile(draws, 1 - a, type = 1L, names = FALSE, na.rm = TRUE))
 }
 
 coverage <- function(reps, kind, level, truth, block_hi, take = NULL,
@@ -47,6 +49,16 @@ for (f in sort(list.files(dir, pattern = "^calibration_.*rds$", full.names = TRU
   reps <- cal$replicates
   cat(sprintf("\n=== %s : n = %d, %d replicates, data n_boot = %d ===\n",
               basename(f), cal$n, length(reps), cal$data_boot))
+
+  # A bootstrap that repeats itself answers every question with the same few
+  # numbers, and nothing downstream shows it. Counted first, before anything is
+  # read off these draws: `n_boot` replicates should hold nearly `n_boot`
+  # distinct ones on a continuous design, and it was 8.5 out of 400 while
+  # `panel_scores()` left the session seed where the seed axis put it.
+  distinct <- vapply(reps, function(r)
+    length(unique(apply(r$data, 1L, paste, collapse = ","))), numeric(1))
+  cat(sprintf("\n0. Distinct resamples per run: mean %.1f of %d (min %d, max %d)\n",
+              mean(distinct), cal$data_boot, min(distinct), max(distinct)))
 
   cat("\n1. Coverage against the nominal level (signal variables)\n")
   levels <- c(0.50, 0.80, 0.90, 0.95, 0.975, 0.99, 0.995, 0.999)
@@ -76,7 +88,7 @@ for (f in sort(list.files(dir, pattern = "^calibration_.*rds$", full.names = TRU
       coverage(reps, "data", 0.95, truth, block_hi, take = k), numeric(1))
     names(sub) <- paste0("n_boot=", sizes)
     print(round(sub, 3))
-    cat("   (fewer replicates estimate the extreme quantiles worse, which widens\n",
-        "   the interval and buys coverage that precision would not give)\n")
+    cat("   (the same replicates throughout, so this is a paired comparison:\n",
+        "   what changes is only how many draws the quantiles are read from)\n")
   }
 }

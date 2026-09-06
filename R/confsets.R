@@ -69,24 +69,38 @@
 #' harmless, because subsetting a factor keeps its levels.
 #'
 #' @section What the level actually buys:
-#' A nominal 95% set does not cover the true rank 95% of the time, and the
-#' simulation that measures it ships with the package as
-#' `inst/simulations/rank-coverage.R`. Eight predictors, five of them real,
-#' 300 replicates per cell, nominal 0.95; coverage of the true rank of the
-#' signal variables:
+#' The two bootstraps miss the nominal level in opposite directions, and by
+#' enough that the choice between them is the choice that matters. The
+#' simulation is `inst/simulations/rank-coverage.R`: eight predictors, five of
+#' them real, 300 replicates per cell, nominal 0.95, coverage of the true rank
+#' of the signal variables.
 #'
-#' * Effects that separate cleanly — 0.895 at `n = 80` and 0.949 at `n = 200`
-#'   for `type = "data"`, against 0.789 and 0.921 for `type = "judges"`.
-#' * Effects close enough that the middle of the ranking is barely identifiable
-#'   — 0.799, 0.833 and 0.892 at `n` of 80, 200 and 500 for `type = "data"`,
-#'   against 0.582, 0.663 and 0.722 for `type = "judges"`.
+#' * `type = "data"` — 0.966, 0.969 and 0.978 at `n` of 80, 200 and 500 with
+#'   effects close enough that the middle of the ranking is barely
+#'   identifiable; 0.993 and 0.998 at `n` of 80 and 200 with effects that
+#'   separate cleanly.
+#' * `type = "judges"` — 0.582, 0.655 and 0.711 on those same close cells;
+#'   0.801 and 0.929 on the separated ones.
 #'
-#' Two things follow. The data bootstrap covered better than the judge bootstrap
-#' in every one of the twelve combinations measured, which is the reason it
-#' exists. And neither reaches the nominal level while the ordering is not
-#' identifiable from the sample: at `n = 80` with close effects the point
-#' estimate recovered the true order of the five signal variables in 3% of
-#' replicates, and no interval can rescue a ranking the data does not support.
+#' The data bootstrap covers, and it covers by being wide. On the hardest cell
+#' its interval spans 5.1 of the 8 available ranks — it reports that this
+#' sample does not order these variables, which is the truth: the point
+#' estimate recovers the true order of the five signal variables in 5% of
+#' replicates there. An interval that admitted less would be claiming more than
+#' the data holds.
+#'
+#' The judge bootstrap is narrow on the same cell — 2.0 ranks — and misses the
+#' true rank two times in five. Resampling a panel measures how much the
+#' methods disagree with each other, and that is not how far the ranking would
+#' move on another sample. It is the cheap answer to a different question, and
+#' the gap it leaves is the reason `type = "data"` exists: 0.966 against 0.582
+#' where the ordering is hardest.
+#'
+#' Fifty replicates are enough for the data bootstrap. The same cell at
+#' `n_boot = 200` covers 0.970 against 0.966, a difference inside the Monte
+#' Carlo error of either — which is worth stating because it was not always
+#' true of this package: a defect that made the bootstrap repeat its resamples
+#' once made `n_boot` look decisive (see `NEWS.md`).
 #'
 #' Read a rank confidence set as a statement about what the evidence rules out,
 #' not as a calibrated guarantee. The rank is a discrete, non-smooth functional

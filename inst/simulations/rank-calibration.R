@@ -14,9 +14,16 @@
 # Design and procedure are the ones in rank-coverage.R: same generating
 # coefficients, same panel, per-replicate seeds.
 #
+# One cell, the hard design at n = 80. Two hundred replicates rather than four
+# hundred: the reason for storing four hundred was a suspected loss of coverage
+# to the imprecision of extreme quantiles at small `n_boot`, and that turned out
+# to be a bootstrap that repeated its resamples rather than a property of the
+# method. Two hundred still sweep 50, 100 and 200 by subsampling.
+#
 #   Rscript inst/simulations/rank-calibration.R <output-directory>
 #
-# Expect about fifty minutes on twelve cores.
+# Expect about two and a half hours on twelve cores. (Measured: the same cell at
+# n_boot = 400 took 279 minutes, and a second one at n = 200 took 452.)
 
 if (requireNamespace("rankimp", quietly = TRUE)) {
   library(rankimp)
@@ -64,10 +71,7 @@ one_replicate <- function(i, n, data_boot) {
   if (inherits(attempt, "try-error")) NULL else attempt
 }
 
-cells <- rbind(
-  data.frame(n = 80, data_boot = 400, M = 300),
-  data.frame(n = 200, data_boot = 200, M = 300)
-)
+cells <- data.frame(n = 80, data_boot = 200, M = 300)
 
 RNGkind("L'Ecuyer-CMRG")
 
