@@ -1,0 +1,10 @@
+pandoc: 3.8.3
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  against-set-stability: against-set-stability.html
+  credit-scoring: credit-scoring.html
+  method-disagreement: method-disagreement.html
+  rankimp-intro: rankimp-intro.html
+  stability: stability.html
+last_built: 2026-09-06T15:54Z
