@@ -43,10 +43,6 @@ test_that("importance_to_rank rejects malformed input", {
   expect_error(importance_to_rank(matrix(c(1, NA, 2, 1), 2, 2)), "missing values")
 })
 
-test_that("not-yet-implemented entry points fail loudly", {
-  expect_error(judge_clusters(1), "not implemented yet")
-})
-
 test_that("importance_judges builds a model x method panel with provenance", {
   skip_if_not_installed("randomForest")
   skip_if_not_installed("ranger")

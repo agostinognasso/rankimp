@@ -24,6 +24,7 @@ Imports:
     tibble,
     utils
 Suggests:
+    cluster,
     covr,
     kernelshap,
     knitr,
