@@ -193,12 +193,11 @@ test_that("the data bootstrap refits the models and returns usable sets", {
 })
 
 test_that("a data replicate reproduces the point estimate on all the rows", {
-  # The interval of a data bootstrap need not contain the consensus rank, and
-  # asserting that it does would encode a false property: `n` rows drawn with
-  # replacement hold about 0.632n distinct ones, and a weak-but-real predictor
-  # is harder to place on that much less information. Measured on eight close
-  # predictors and eighty rows: the second variable sits at rank 2 in the point
-  # estimate and has a median bootstrap rank of 3.
+  # A replicate's ranking drifts towards the middle: `n` rows drawn with
+  # replacement hold about 0.632n distinct ones, and a variable is harder to
+  # place on that much less information. Measured over 300 panels of eight close
+  # predictors and eighty rows, the second variable's median bootstrap rank sits
+  # 0.55 below its consensus rank and the eighth's sits 1.00 above.
   #
   # What must hold is the identity behind it — hand a replicate all the distinct
   # rows and it reproduces the point estimate. That separates bootstrap bias,

@@ -13,6 +13,27 @@
 #' about", not "which variables should I keep": a variable excluded here may
 #' still carry signal, and [prob_topk()] quantifies how much doubt there is.
 #'
+#' @section What the guarantee is measured to be worth:
+#' Conservative is a claim, so it was measured. On 300 panels of eight
+#' predictors with close effects and eighty rows
+#' (`inst/simulations/select-calibration.R`), against the true ordering of the
+#' data-generating coefficients:
+#'
+#' | threshold | selected per panel | false selections | panels with one | of those that deserved it, selected |
+#' |---|---|---|---|---|
+#' | 1 | 1.00 | 0.000 | 0.000 | 1.000 |
+#' | 2 | 1.01 | 0.000 | 0.000 | 0.503 |
+#' | 3 | 1.07 | 0.009 | 0.010 | 0.352 |
+#' | 4 | 1.23 | 0.011 | 0.013 | 0.305 |
+#' | 5 | 1.56 | 0.002 | 0.003 | 0.312 |
+#' | 6 | 2.22 | 0.030 | 0.067 | 0.431 |
+#'
+#' A selected variable is almost never one that did not deserve it — at most 3%
+#' of selections, and 0% at the thresholds that make the strongest claim. The
+#' price is on the other side: past a threshold of 1 it selects between a third
+#' and a half of the variables that did deserve it. Read a short list as "these
+#' I can defend", never as "these are the ones that matter".
+#'
 #' @param cb A `rank_confsets` object.
 #' @param threshold Worst rank a selected variable may plausibly occupy.
 #' @return A character vector of selected variable names, in consensus order.

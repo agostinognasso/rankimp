@@ -29,6 +29,29 @@ The rule is deliberately conservative. It answers "which variables am I sure
 about", not "which variables should I keep": a variable excluded here may
 still carry signal, and \code{\link[=prob_topk]{prob_topk()}} quantifies how much doubt there is.
 }
+\section{What the guarantee is measured to be worth}{
+
+Conservative is a claim, so it was measured. On 300 panels of eight
+predictors with close effects and eighty rows
+(\code{inst/simulations/select-calibration.R}), against the true ordering of the
+data-generating coefficients:\tabular{lllll}{
+   threshold \tab selected per panel \tab false selections \tab panels with one \tab of those that deserved it, selected \cr
+   1 \tab 1.00 \tab 0.000 \tab 0.000 \tab 1.000 \cr
+   2 \tab 1.01 \tab 0.000 \tab 0.000 \tab 0.503 \cr
+   3 \tab 1.07 \tab 0.009 \tab 0.010 \tab 0.352 \cr
+   4 \tab 1.23 \tab 0.011 \tab 0.013 \tab 0.305 \cr
+   5 \tab 1.56 \tab 0.002 \tab 0.003 \tab 0.312 \cr
+   6 \tab 2.22 \tab 0.030 \tab 0.067 \tab 0.431 \cr
+}
+
+
+A selected variable is almost never one that did not deserve it — at most 3\%
+of selections, and 0\% at the thresholds that make the strongest claim. The
+price is on the other side: past a threshold of 1 it selects between a third
+and a half of the variables that did deserve it. Read a short list as "these
+I can defend", never as "these are the ones that matter".
+}
+
 \examples{
 judges <- rbind(c(1, 2, 3, 4), c(1, 2, 3, 4), c(1, 2, 4, 3))
 colnames(judges) <- c("income", "age", "balance", "region")

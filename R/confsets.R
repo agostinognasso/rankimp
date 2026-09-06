@@ -52,14 +52,23 @@
 #'   fitted with a hand-tuned `nodesize` is refitted at the engine's default,
 #'   here as on the `seeds` and `resamples` axes.
 #'
-#' One consequence to expect rather than to debug: the interval need not contain
-#' the consensus rank. `n` rows drawn with replacement hold about 0.632`n`
-#' distinct ones, and a weak-but-real predictor is harder to place on that much
-#' less information, so its bootstrap ranks drift towards worse positions.
-#' Measured on eight predictors with close effects and eighty rows, the second
-#' variable of the consensus had a median bootstrap rank of three. Hand a
-#' replicate all the distinct rows instead and it returns the point estimate
-#' exactly — which is how this was told apart from a panel rebuilt wrongly.
+#' One consequence to expect rather than to debug: a replicate's ranking drifts
+#' towards the middle. `n` rows drawn with replacement hold about 0.632`n`
+#' distinct ones, and a variable is harder to place on that much less
+#' information, so the top of the ranking drifts down and the bottom drifts up.
+#' Measured over 300 panels of eight predictors with close effects and eighty
+#' rows (`inst/simulations/select-calibration.R`), the median bootstrap rank of
+#' the second variable of the consensus sits 0.55 ranks below it and is worse
+#' than it in 51% of panels; the eighth sits 1.00 above. Hand a replicate all
+#' the distinct rows instead and it returns the point estimate exactly — which
+#' is how this was told apart from a panel rebuilt wrongly.
+#'
+#' The drift is not large enough to push the consensus rank out of its own
+#' interval: that happened in none of those 2,400 variable-replicates. Earlier
+#' versions of this page warned that it would, on the strength of one panel
+#' whose interval was `[3, 5]` around a consensus rank of 2. That panel came
+#' from the bootstrap that repeated its resamples, and the intervals it produced
+#' were too narrow to be believed.
 #'
 #' A replicate that fails is dropped rather than allowed to kill the run, and
 #' the count of dropped replicates is warned about and kept in `failed`. The
@@ -464,6 +473,29 @@ print.rank_confsets <- function(x, ...) {
 #' The proportion of bootstrap replicates in which the variable's consensus rank
 #' is at most `k`. Ties are counted as membership: a variable tied at rank `k`
 #' with another is in the top `k`.
+#'
+#' @section How much to believe the number:
+#' It is conservative in the middle and honest at the ends. Measured on 300
+#' panels of eight predictors with close effects and eighty rows, pooled over
+#' `k = 1..6` and binned by the reported probability
+#' (`inst/simulations/select-calibration.R`):
+#'
+#' | reported | actually in the top k |
+#' |---|---|
+#' | 0.15 | 0.18 |
+#' | 0.35 | 0.41 |
+#' | 0.44 | 0.56 |
+#' | 0.55 | 0.64 |
+#' | 0.75 | 0.83 |
+#' | 0.98 | 0.98 |
+#'
+#' A variable given 0.44 is in the top `k` about 56% of the time, so the number
+#' understates by up to twelve points where it is least decisive, and is
+#' accurate where it is near 0 or near 1. The direction is the one to want — the
+#' function does not claim more than it can show — and it has the same cause as
+#' the wide intervals: a replicate sees about 0.632`n` distinct rows, ranks the
+#' variables worse than the full sample does, and drops some of them out of the
+#' top `k` more often than the sampling distribution would.
 #'
 #' @param cb A `rank_confsets` object.
 #' @param k Size of the top set.
