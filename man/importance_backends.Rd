@@ -44,15 +44,14 @@ A named numeric vector of importance scores, one per predictor.
 \description{
 Each backend asks a fitted model for one named numeric vector of importance
 scores over its predictors, higher meaning more important. They are the
-judges' voices: \code{\link[=importance_judges]{importance_judges()}} calls them once per judge, and they
-can equally be called directly when a single score vector is all that is
-needed.
+judges' voices: \code{\link[=importance_judges]{importance_judges()}} calls them once per judge, and they can
+equally be called directly when a single score vector is all that is needed.
 }
 \details{
 Permutation, MDI and LOCO are implemented natively against the supported
 engines (randomForest, ranger); SHAP delegates to the kernelshap package.
 Scores are computed on the data supplied, so permutation and LOCO are
-in-sample unless \code{data} is a holdout set — \code{\link[=importance_judges]{importance_judges()}} with a
+in-sample unless \code{data} is a holdout set. \code{\link[=importance_judges]{importance_judges()}} with a
 \code{resamples} axis is the out-of-sample version.
 
 Backends that randomise (permutation shuffles, SHAP row subsampling, LOCO

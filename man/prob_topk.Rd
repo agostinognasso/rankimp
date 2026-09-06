@@ -23,8 +23,7 @@ with another is in the top \code{k}.
 \section{How much to believe the number}{
 
 It is conservative in the middle and honest at the ends. Measured on 300
-panels of eight predictors with close effects and eighty rows, pooled over
-\verb{k = 1..6} and binned by the reported probability
+panels of eight predictors with close effects and eighty rows, pooled over \verb{k = 1..6} and binned by the reported probability
 (\code{inst/simulations/select-calibration.R}):\tabular{ll}{
    reported \tab actually in the top k \cr
    0.15 \tab 0.18 \cr
@@ -38,11 +37,11 @@ panels of eight predictors with close effects and eighty rows, pooled over
 
 A variable given 0.44 is in the top \code{k} about 56\% of the time, so the number
 understates by up to twelve points where it is least decisive, and is
-accurate where it is near 0 or near 1. The direction is the one to want — the
-function does not claim more than it can show — and it has the same cause as
-the wide intervals: a replicate sees about 0.632\code{n} distinct rows, ranks the
-variables worse than the full sample does, and drops some of them out of the
-top \code{k} more often than the sampling distribution would.
+accurate where it is near 0 or near 1. The direction is the one to want,
+since the function never claims more than it can show, and the cause is the
+one behind the wide intervals: a replicate sees about 0.632\code{n} distinct rows,
+ranks the variables worse than the full sample does, and drops some of them
+out of the top \code{k} more often than the sampling distribution would.
 }
 
 \examples{

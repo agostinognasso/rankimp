@@ -21,8 +21,8 @@ two variables cannot be ordered on this evidence, which is the statement most
 importance plots decline to make.
 }
 \details{
-The rank axis is reversed, so that rank 1 — the most important variable —
-sits at the top.
+The rank axis is reversed, so that rank 1, the most important variable, sits
+at the top.
 }
 \examples{
 judges <- rbind(c(1, 2, 3, 4), c(1, 3, 2, 4), c(2, 1, 3, 4))

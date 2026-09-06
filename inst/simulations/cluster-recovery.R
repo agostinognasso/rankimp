@@ -1,4 +1,5 @@
-# What `judge_clusters()` actually does -----------------------------------------
+# What `judge_clusters()` actually does
+# -----------------------------------------
 #
 # Automatic selection of the number of groups has two ways of being wrong, and
 # only one of them is usually measured. Missing a real division is the visible
@@ -17,8 +18,8 @@
 #
 #   Rscript inst/simulations/cluster-recovery.R <output-directory>
 #
-# Expect a couple of minutes for part 1 and about a quarter of an hour for
-# part 2 on twelve cores.
+# Expect a couple of minutes for part 1 and about a quarter of an hour for part
+# 2 on twelve cores.
 
 if (requireNamespace("rankimp", quietly = TRUE)) {
   library(rankimp)
@@ -109,9 +110,9 @@ grid <- expand.grid(
 # One population has no separation to vary: keep a single row for it.
 grid <- grid[!(grid$groups == 1L & grid$separation != 4L), ]
 
-# How much a bigger panel buys. The panel the roadmap describes — two methods
-# by three seeds — is six judges, and six points in a discrete space is very
-# little to establish a grouping from.
+# How much a bigger panel buys. The panel the roadmap describes, two methods by
+# three seeds, is six judges, and six points in a discrete space is very little
+# to establish a grouping from.
 grid <- rbind(grid, expand.grid(separation = 16L, noise = 1L, groups = 1:2,
                                 judges = c(10L, 16L)))
 
@@ -152,7 +153,7 @@ cat("(P = ", P, " variables; separation and noise are adjacent transpositions)\n
     sep = "")
 print(summarise1(part1), row.names = FALSE, digits = 3)
 cat("\nfound_k       : the chosen k equals the true number of groups\n")
-cat("split_anyway  : one population divided anyway — the false division rate\n")
+cat("split_anyway  : one population divided anyway, the false division rate\n")
 cat("recovered     : two populations, partition exactly right\n")
 
 # --- part 2: marginal against conditional on correlated predictors -----------
@@ -168,8 +169,8 @@ N <- 300L
 
 # x1 and x2 carry the same signal and are nearly interchangeable. A marginal
 # measure credits both; a conditional one credits whichever it drops second.
-# That is the disagreement the vignette claims, and the panel should split on
-# it rather than average it away.
+# That is the disagreement the vignette claims, and the panel should split on it
+# rather than average it away.
 simulate_correlated <- function(n, rho) {
   z <- rnorm(n)
   # x = z + e with e ~ N(0, s^2) gives cor(x1, x2) = 1 / (1 + s^2).

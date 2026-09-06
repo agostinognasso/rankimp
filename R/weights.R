@@ -1,22 +1,21 @@
 #' Weights for the panel of judges
 #'
-#' Not every judge deserves an equal say. Impurity-based importance is known
-#' to favour high-cardinality predictors, so a panel that mixes it with
-#' permutation importance may want to down-weight it rather than let the two
-#' cancel out. The returned vector plugs straight into
-#' [consensus_rank()]'s `weights` argument.
+#' Not every judge deserves an equal say. Impurity-based importance is known to
+#' favour high-cardinality predictors, so a panel that mixes it with permutation
+#' importance may want to down-weight it rather than let the two cancel out. The
+#' returned vector plugs straight into [consensus_rank()]'s `weights` argument.
 #'
 #' @section Schemes:
-#' * `"equal"` — every judge weighs 1.
-#' * `"method"` — one weight per importance method, supplied through `values`
+#' * `"equal"`: every judge weighs 1.
+#' * `"method"`: one weight per importance method, supplied through `values`
 #'   and expanded over the judges. Needs the provenance that
 #'   [importance_judges()] records, so it only works on a `judges` object.
-#' * `"reliability"` — a judge's weight grows with its agreement with the rest
+#' * `"reliability"`: a judge's weight grows with its agreement with the rest
 #'   of the panel: \eqn{w_k = (1 + \bar\tau_k)/2}, where \eqn{\bar\tau_k} is
 #'   the mean Emond–Mason \eqn{\tau_x} correlation between judge \eqn{k} and
 #'   every other judge, computed with [ConsRank::tau_x()]. Weights are
 #'   normalised to mean 1, and floored at machine epsilon so that a judge in
-#'   perfect disagreement with everyone is effectively — but not numerically —
+#'   perfect disagreement with everyone is effectively, though not numerically,
 #'   excluded. Down-weighting the dissenters sharpens the consensus around the
 #'   majority view; when dissent is the interesting signal, look at
 #'   `judge_clusters()` instead of weighting it away.

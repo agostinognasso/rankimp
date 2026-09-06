@@ -67,9 +67,9 @@ is_classifier <- function(fit) {
 
 #' Predict on the response scale
 #'
-#' Numbers for regression, class labels for classification. Probability
-#' forests are collapsed to the modal class with deterministic tie breaking,
-#' so that the misclassification loss applies unchanged.
+#' Numbers for regression, class labels for classification. Probability forests
+#' are collapsed to the modal class with deterministic tie breaking, so that the
+#' misclassification loss applies unchanged.
 #'
 #' @noRd
 predict_response <- function(fit, newdata) {
@@ -138,8 +138,8 @@ refit <- function(fit, x, y) {
 
 #' Loss of a prediction against the observed response
 #'
-#' Root mean squared error for a numeric response, misclassification rate for
-#' a factor. What matters for permutation and LOCO importance is not the loss
+#' Root mean squared error for a numeric response, misclassification rate for a
+#' factor. What matters for permutation and LOCO importance is not the loss
 #' itself but its increase, so any strictly proper choice works; these two are
 #' the conventional ones.
 #'

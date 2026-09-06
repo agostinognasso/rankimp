@@ -66,7 +66,7 @@ so.
 ## Building the panel from fitted models
 
 Hand-building the score matrix is fine for a demonstration and tedious in
-practice. `importance_judges()` builds it from fitted models directly — here
+practice. `importance_judges()` builds it from fitted models directly, here
 two methods interrogating one forest, the smallest panel worth having:
 
 ```{r, eval = requireNamespace("randomForest", quietly = TRUE)}
@@ -115,14 +115,14 @@ so rather than let the bias average out.
 consensus_rank(judges, weights = c(1, 1, 1, 0.5))$ranking
 ```
 
-`judge_weights()` builds these vectors from a panel — one weight per method, or
-weights proportional to each judge's agreement with the rest — and a panel
-built by `importance_judges(..., weights = )` carries them into
+`judge_weights()` builds these vectors from a panel, either one weight per
+method or weights proportional to each judge's agreement with the rest, and a
+panel built by `importance_judges(..., weights = )` carries them into
 `consensus_rank()` on its own.
 
 ## What comes next
 
-A consensus without a standard error is still one number. `vignette("stability")`
-covers the bootstrap rank confidence sets that say which parts of the ordering
-are real, and `vignette("method-disagreement")` covers what to do when the
-judges do not agree at all.
+A consensus without a standard error is still one number.
+`vignette("stability")` covers the bootstrap rank confidence sets that say which
+parts of the ordering are real, and `vignette("method-disagreement")` covers
+what to do when the judges do not agree at all.

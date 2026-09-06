@@ -4,11 +4,11 @@
 #' actually gave it. Point area is the number of judges at that rank, so the
 #' picture is exact rather than jittered.
 #'
-#' What it is for: a consensus ranking reports one number per variable, and
-#' that number is equally consistent with a panel that agreed and a panel that
-#' was split down the middle. The spread behind each point is the difference,
-#' and it is per variable — `tau_x` and [item_consensus()] measure agreement
-#' per *judge*, which is a different question and will not tell you *which*
+#' What it is for: a consensus ranking reports one number per variable, and that
+#' number is equally consistent with a panel that agreed and a panel that was
+#' split down the middle. The spread behind each point is the difference, and it
+#' is per variable. `tau_x` and [item_consensus()] measure agreement per
+#' *judge*, which is a different question and will not tell you *which*
 #' variables the panel could not place.
 #'
 #' Variables the consensus could not separate come out at the same rank and are
@@ -16,7 +16,7 @@
 #' the Kemeny median is not unique the plot plots the combined ranking, the one
 #' [consensus_rank()] reports, and says so in the subtitle.
 #'
-#' The rank axis is reversed, so rank 1 — the most important variable — sits at
+#' The rank axis is reversed, so rank 1, the most important variable, sits at
 #' the top.
 #'
 #' @param object A `consensus_rank` object.
@@ -87,8 +87,8 @@ autoplot.consensus_rank <- function(object, ...) {
 #' two variables cannot be ordered on this evidence, which is the statement most
 #' importance plots decline to make.
 #'
-#' The rank axis is reversed, so that rank 1 — the most important variable —
-#' sits at the top.
+#' The rank axis is reversed, so that rank 1, the most important variable, sits
+#' at the top.
 #'
 #' @param object A `rank_confsets` object.
 #' @param ... Reserved for future use.
@@ -131,10 +131,10 @@ autoplot.rank_confsets <- function(object, ...) {
 #' Multidimensional scaling of the judges in the space of the Kemeny-Snell
 #' distance, coloured by cluster.
 #'
-#' What the picture is for: whether the panel is one cloud or several, and
-#' which judges sit between them. The Kemeny-Snell distance is integer-valued
-#' and rarely Euclidean, so two dimensions are a projection and not the thing
-#' itself — the subtitle reports how much of the distance survives the
+#' What the picture is for: whether the panel is one cloud or several, and which
+#' judges sit between them. The Kemeny-Snell distance is integer-valued and
+#' rarely Euclidean, so two dimensions are a projection and not the thing
+#' itself. The subtitle reports how much of the distance survives the
 #' projection, and a low figure means the plot is a sketch of the grouping
 #' rather than evidence for it.
 #'

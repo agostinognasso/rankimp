@@ -46,22 +46,21 @@ cannot do that from a ranking.
 }
 \description{
 Given \code{K} judges, each expressing a ranking over the same \code{p} variables,
-returns the median ranking in the sense of Kemeny: the ranking that
-minimises the total Kemeny-Snell distance to the judges,
-\deqn{\pi^{*} = \arg\min_{\pi} \sum_{k=1}^{K} w_k \, d_{KS}(\pi, \pi_k).}
+returns the median ranking in the sense of Kemeny: the ranking that minimises
+the total Kemeny-Snell distance to the judges, \deqn{\pi^{*} = \arg\min_{\pi}
+\sum_{k=1}^{K} w_k \, d_{KS}(\pi, \pi_k).}
 }
 \details{
-Ties in the consensus are meaningful and are kept by default. Variables
-that the judges genuinely cannot separate \emph{should} come out equal, which
-is what distinguishes a Kemeny median from an average of Borda scores.
-Set \code{ties = FALSE} to force a linear order.
+Ties in the consensus are meaningful and are kept by default. Variables that
+the judges genuinely cannot separate \emph{should} come out equal, which is what
+distinguishes a Kemeny median from an average of Borda scores. Set \code{ties = FALSE} to force a linear order.
 }
 \section{When the median is not unique}{
 
-Several rankings can attain the same minimum, and \code{ConsRank} returns them all.
-Reporting one of them would be arbitrary in a way that is not neutral: which
-comes first depends on the order of the columns, so a variable can gain a
-position by sitting to the left. That was measured — on a symmetric panel,
+Several rankings can attain the same minimum, and \code{ConsRank} returns them
+all. Reporting one of them would be arbitrary in a way that is not neutral:
+which comes first depends on the order of the columns, so a variable can gain
+a position by sitting to the left. That was measured: on a symmetric panel,
 permuting the columns changed the winner; in a simulation with three
 exchangeable noise predictors the leftmost took the best rank systematically,
 and the situation is not rare, arising in 57\% to 98\% of replicates there.
@@ -78,9 +77,9 @@ set remains in \code{consensus_all}.
 Finding the Kemeny median is NP-hard, so \code{algorithm = "auto"} picks by
 problem size:
 \itemize{
-\item \code{p <= 10} — \code{"exact"}, branch-and-bound.
-\item \verb{11 <= p <= 50} — \code{"quick"}.
-\item \code{p > 50} — \code{"fast"}, with a message. The integer-programming route of the
+\item \code{p <= 10}: \code{"exact"}, branch-and-bound.
+\item \verb{11 <= p <= 50}: \code{"quick"}.
+\item \code{p > 50}: \code{"fast"}, with a message. The integer-programming route of the
 roadmap, which would restore optimality guarantees at this size, is a phase
 F2 deliverable.
 }

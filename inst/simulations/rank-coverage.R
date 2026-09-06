@@ -150,7 +150,7 @@ for (k in seq_len(nrow(cells))) {
 #
 # `k` variables tied at rank `t` occupy positions `t .. t + k - 1` in any
 # ranking, in an order nothing in the data determines. The consensus never
-# returns them tied — importance scores are continuous, so two are never exactly
+# returns them tied. Importance scores are continuous, so two are never exactly
 # equal, and this was checked: across every cell the noise block came out tied
 # 0.000 of the time. Demanding that each of their sets contain `t` therefore
 # asks two of the three for something structurally unavailable, and measures the

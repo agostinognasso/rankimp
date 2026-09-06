@@ -60,12 +60,11 @@ BLOCK_HI <- TRUTH + as.integer(table(TRUTH)[as.character(TRUTH)]) - 1L
 names(BLOCK_HI) <- VARIABLES
 
 # A variable is genuinely in the top k when its block of true positions starts
-# at or before k: a noise variable tied across positions 6-8 is never in the
-# top 5, and x1 at position 1 always is.
+# at or before k: a noise variable tied across positions 6-8 is never in the top
+# 5, and x1 at position 1 always is.
 truly_in_top <- function(k) TRUTH <= k
-# ... and genuinely clears a threshold when even the worst position of its
-# block does, which is the claim `rank_select()` makes about a selected
-# variable.
+# ... and genuinely clears a threshold when even the worst position of its block
+# does, which is the claim `rank_select()` makes about a selected variable.
 truly_clears <- function(t) BLOCK_HI <= t
 
 simulate_data <- function(n) {

@@ -110,8 +110,8 @@ test_that("the seed axis refits and records provenance", {
 test_that("the seed axis leaves the caller's random stream where it found it", {
   # `set.seed()` for the seed axis used to be the last word on the session
   # stream, and whatever ran next carried on from a state the seed had fixed.
-  # The data bootstrap is what that broke — it draws its next resample from
-  # exactly this stream, so every replicate set out from the same place — but a
+  # The data bootstrap is what that broke, since it draws its next resample
+  # from exactly this stream and every replicate set out from the same place. A
   # panel has no business moving a caller's RNG in any case.
   skip_if_not_installed("randomForest")
   set.seed(13)

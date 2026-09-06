@@ -1,5 +1,5 @@
-# Shared fixtures. The response is driven by x1, mildly by x2 and not at all
-# by x3, so every backend should put x1 above x3.
+# Shared fixtures. The response is driven by x1, mildly by x2 and not at all by
+# x3, so every backend should put x1 above x3.
 
 reg_data <- local({
   set.seed(42)

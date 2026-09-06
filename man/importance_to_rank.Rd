@@ -18,11 +18,11 @@ An integer matrix of rankings with the same dimensions and
 dimnames as \code{x}, suitable for \code{\link[=consensus_rank]{consensus_rank()}}.
 }
 \description{
-Each row of \code{x} holds the importance that one judge assigns to each
-variable; the result holds the rank that judge gives each variable, with
-\code{1} for the most important. Variables a judge scores equally receive the
-same rank, because pretending to separate them would invent information
-the judge never supplied.
+Each row of \code{x} holds the importance that one judge assigns to each variable;
+the result holds the rank that judge gives each variable, with \code{1} for the
+most important. Variables a judge scores equally receive the same rank,
+because pretending to separate them would invent information the judge never
+supplied.
 }
 \examples{
 imp <- rbind(

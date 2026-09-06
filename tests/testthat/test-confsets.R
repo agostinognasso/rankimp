@@ -199,7 +199,7 @@ test_that("a data replicate reproduces the point estimate on all the rows", {
   # predictors and eighty rows, the second variable's median bootstrap rank sits
   # 0.55 below its consensus rank and the eighth's sits 1.00 above.
   #
-  # What must hold is the identity behind it — hand a replicate all the distinct
+  # What must hold is the identity behind it: hand a replicate all the distinct
   # rows and it reproduces the point estimate. That separates bootstrap bias,
   # which is the method, from a panel rebuilt wrongly, which would be a bug.
   skip_if_not_installed("randomForest")
@@ -240,7 +240,7 @@ test_that("the data bootstrap draws a fresh resample for every replicate", {
   # The defect this stands in for: rebuilding the panel called `set.seed()` for
   # the seed axis and left the stream there, so the loop drew its next resample
   # from a state fixed by the last seed and kept redrawing the same rows. The
-  # replicates then repeat with a short period — measured on eighty rows and a
+  # replicates then repeat with a short period. Measured on eighty rows and a
   # panel of six judges, four hundred requested replicates held about eight
   # distinct ones, and `n_boot` bought nothing beyond the first few.
   #

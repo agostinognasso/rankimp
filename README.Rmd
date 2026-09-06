@@ -1,6 +1,4 @@
----
-output: github_document
----
+--- output: github_document ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file. -->
 
@@ -15,29 +13,28 @@ knitr::opts_chunk$set(
 
 # rankimp
 
-<!-- badges: start -->
-<!-- badges: end -->
+<!-- badges: start --> <!-- badges: end -->
 
 Mean decrease in impurity, permutation importance, SHAP, LOCO and drop-column
 importance give different answers on the same data. So does one method under a
 different seed, or a different fold. Reporting a single ranking from a single
 method on a single fit is standard practice and is indefensible.
 
-`rankimp` treats every combination of method, seed, fold and model as a **judge**
-expressing a ranking over the predictors, and computes the Kemeny median of the
-panel — with ties, with judge weights, and with confidence sets that say which
-parts of the ordering the evidence actually supports.
+`rankimp` treats every combination of method, seed, fold and model as a
+**judge** expressing a ranking over the predictors, and computes the Kemeny
+median of the panel, with ties, with judge weights, and with confidence sets
+that say which parts of the ordering the evidence actually supports.
 
 It builds on [`ConsRank`](https://cran.r-project.org/package=ConsRank) for the
 consensus itself; the contribution is the inferential layer on top.
 
 ## Installation
 
-Not on CRAN yet.
+Not on CRAN yet. Install from GitHub:
 
 ```r
 # install.packages("pak")
-pak::pak("rankimp")
+pak::pak("agostinognasso/rankimp")
 ```
 
 ## Usage
@@ -59,6 +56,23 @@ consensus_rank(judges)
 Variables the panel genuinely cannot separate come out tied, which is the thing
 an average of Borda scores can never say.
 
+## Documentation
+
+Start with whichever question you have.
+
+| Vignette | What it covers |
+|---|---|
+| `vignette("rankimp-intro")` | the short tour: panels, the consensus, ties, weights |
+| `vignette("reference")` | every function, what it returns, and when you want it |
+| `vignette("theory")` | why a Kemeny median, and what a bootstrapped rank estimates |
+| `vignette("stability")` | rank confidence sets and what they were measured to cover |
+| `vignette("method-disagreement")` | panels that split, and reading one that does not |
+| `vignette("credit-scoring")` | all four axes end to end on one problem |
+| `vignette("against-set-stability")` | how this differs from `stabm` |
+
+Every measured number in the documentation comes from a script in
+`inst/simulations/`.
+
 ## Status
 
 Early development, and complete end to end: `importance_judges()` interrogates
@@ -72,7 +86,7 @@ axes, `rank_confsets()` puts intervals around the consensus, and
 | F2 | Consensus, ties, algorithm selection | done |
 | F3 | Bootstrap, rank confidence sets, `prob_topk()`, `rank_select()` | done |
 | F4 | Judge clustering, plots, vignettes | done |
-| F5 | CRAN, methodological paper | — |
+| F5 | CRAN, methodological paper | not started |
 
 The inferential layer came first on purpose. `consensus_rank()` orchestrates
 `ConsRank`; `rank_confsets()` does not orchestrate anything, and it is the part
@@ -80,8 +94,9 @@ that lets a claim about variable importance be falsified.
 
 ## Related work
 
-* [`ConsRank`](https://cran.r-project.org/package=ConsRank) — the Kemeny median
+* [`ConsRank`](https://cran.r-project.org/package=ConsRank): the Kemeny median
   engine this package orchestrates.
-* [`e2tree`](https://cran.r-project.org/package=e2tree) — explains a forest with
+* [`e2tree`](https://cran.r-project.org/package=e2tree): explains a forest with
   a single tree.
-* `Proximum` — how the forest represents the data whose variables are ranked here.
+* `Proximum`: how the forest represents the data whose variables are ranked
+  here.

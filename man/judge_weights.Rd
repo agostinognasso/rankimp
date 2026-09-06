@@ -19,25 +19,24 @@ every method present in the panel must be named.}
 A named numeric vector of positive weights, one per judge.
 }
 \description{
-Not every judge deserves an equal say. Impurity-based importance is known
-to favour high-cardinality predictors, so a panel that mixes it with
-permutation importance may want to down-weight it rather than let the two
-cancel out. The returned vector plugs straight into
-\code{\link[=consensus_rank]{consensus_rank()}}'s \code{weights} argument.
+Not every judge deserves an equal say. Impurity-based importance is known to
+favour high-cardinality predictors, so a panel that mixes it with permutation
+importance may want to down-weight it rather than let the two cancel out. The
+returned vector plugs straight into \code{\link[=consensus_rank]{consensus_rank()}}'s \code{weights} argument.
 }
 \section{Schemes}{
 
 \itemize{
-\item \code{"equal"} — every judge weighs 1.
-\item \code{"method"} — one weight per importance method, supplied through \code{values}
+\item \code{"equal"}: every judge weighs 1.
+\item \code{"method"}: one weight per importance method, supplied through \code{values}
 and expanded over the judges. Needs the provenance that
 \code{\link[=importance_judges]{importance_judges()}} records, so it only works on a \code{judges} object.
-\item \code{"reliability"} — a judge's weight grows with its agreement with the rest
+\item \code{"reliability"}: a judge's weight grows with its agreement with the rest
 of the panel: \eqn{w_k = (1 + \bar\tau_k)/2}, where \eqn{\bar\tau_k} is
 the mean Emond–Mason \eqn{\tau_x} correlation between judge \eqn{k} and
 every other judge, computed with \code{\link[ConsRank:tau_x]{ConsRank::tau_x()}}. Weights are
 normalised to mean 1, and floored at machine epsilon so that a judge in
-perfect disagreement with everyone is effectively — but not numerically —
+perfect disagreement with everyone is effectively, though not numerically,
 excluded. Down-weighting the dissenters sharpens the consensus around the
 majority view; when dissent is the interesting signal, look at
 \code{judge_clusters()} instead of weighting it away.

@@ -56,22 +56,21 @@ with the judge's model, engine, method, seed and resample), the raw
 \code{recipe} that built it.
 }
 \description{
-Builds the ranking matrix consumed by \code{\link[=consensus_rank]{consensus_rank()}} from any
-combination of the four axes along which a variable importance ranking can
-vary: the \emph{method} used, the \emph{model} it interrogates, the \emph{seed} of the
-ensemble, and the \emph{resample} of the data. Every combination of the active
-axes becomes one judge — one row of the panel — whose importance scores are
-computed by the matching backend and turned into a ranking with
-\code{\link[=importance_to_rank]{importance_to_rank()}}.
+Builds the ranking matrix consumed by \code{\link[=consensus_rank]{consensus_rank()}} from any combination
+of the four axes along which a variable importance ranking can vary: the
+\emph{method} used, the \emph{model} it interrogates, the \emph{seed} of the ensemble, and
+the \emph{resample} of the data. Every combination of the active axes becomes one
+judge, one row of the panel, whose importance scores are computed by the
+matching backend and turned into a ranking with \code{\link[=importance_to_rank]{importance_to_rank()}}.
 }
 \section{The four axes}{
 
 \itemize{
 \item \strong{Methods} (\code{methods}): each importance method is one voice; see
 \link{importance_backends}.
-\item \strong{Models} (\code{fit_list}): several fitted models — a cross-model consensus
-asks which variables matter regardless of the learner. All models must be
-trained on the same predictors.
+\item \strong{Models} (\code{fit_list}): several fitted models, so that a cross-model
+consensus asks which variables matter regardless of the learner. All
+models must be trained on the same predictors.
 \item \strong{Seeds} (\code{seeds}): each seed refits every model on \code{data} after
 \code{set.seed(seed)}, measuring the stability of the ranking under the
 ensemble's own randomness. Refits keep the original number of trees and
@@ -79,23 +78,23 @@ ensemble's own randomness. Refits keep the original number of trees and
 \item \strong{Resamples} (\code{resamples}): an \code{rset} from the rsample package (v-fold
 CV or bootstrap). Every split refits the models on its analysis set;
 permutation and SHAP importance are then computed on the assessment set,
-and LOCO refits on the analysis set and evaluates on the assessment set —
-the out-of-sample versions of those importances. MDI, which has no data
-argument, is read off the refit.
+and LOCO refits on the analysis set and evaluates on the assessment set,
+giving the out-of-sample versions of those importances. MDI, which has no
+data argument, is read off the refit.
 }
 
 Without \code{seeds} or \code{resamples} the supplied fits are used as they are, and
-data-dependent importances are in-sample. Axes combine as a full grid:
-models × methods × seeds × resamples.
+data-dependent importances are in-sample. Axes combine as a full grid: models
+× methods × seeds × resamples.
 }
 
 \section{The recipe}{
 
-The panel keeps the arguments that built it — the fits, the data, the target,
-the methods, the axes and the backend settings — so that
-\code{\link[=rank_confsets]{rank_confsets()}} can rebuild it on a bootstrap sample of the rows without
-being handed them all again. That makes the panel as large as the objects it
-refers to.
+The panel keeps the arguments that built it: the fits, the data, the target,
+the methods, the axes and the backend settings. That is what lets
+\code{\link[=rank_confsets]{rank_confsets()}} rebuild it on a bootstrap sample of the rows without being
+handed them all again. That makes the panel as large as the objects it refers
+to.
 }
 
 \section{Reproducibility}{

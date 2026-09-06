@@ -62,9 +62,9 @@ test_that("item_consensus rejects the wrong class", {
 #
 # Six variables and not four. On four the test declines to call this a division,
 # and it is right to: 24 rankings exist, and six judges land this sharply by
-# chance in about a tenth of panels drawn from one population. Measured, at
-# p = 4: silhouette 0.737, p = 0.095. From five variables up the same panel
-# gives p = 0.005.
+# chance in about a tenth of panels drawn from one population. Measured, at p =
+# 4: silhouette 0.737, p = 0.095. From five variables up the same panel gives p
+# = 0.005.
 split_panel <- function() {
   m <- rbind(
     permutation_1 = c(1, 2, 3, 4, 5, 6), permutation_2 = c(1, 2, 3, 4, 6, 5),

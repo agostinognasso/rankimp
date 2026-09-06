@@ -1,26 +1,26 @@
 #' Do the judges agree?
 #'
-#' When the global agreement with the consensus is low, reporting the
-#' consensus alone hides the disagreement instead of describing it. Clustering
-#' the judges in the space of the Kemeny-Snell distance recovers the
-#' sub-populations of methods that see the model differently — marginal
-#' against conditional importance measures typically separate here whenever
-#' the predictors are correlated, and that separation is itself the finding.
+#' When the global agreement with the consensus is low, reporting the consensus
+#' alone hides the disagreement instead of describing it. Clustering the judges
+#' in the space of the Kemeny-Snell distance recovers the sub-populations of
+#' methods that see the model differently. Marginal against conditional
+#' importance measures typically separate here whenever the predictors are
+#' correlated, and that separation is itself the finding.
 #'
 #' The groups are k-medians in ranking space: each group's centre is the Kemeny
 #' median of its members, computed by [consensus_rank()], and each judge belongs
 #' to the group whose centre it is closest to. The centre of a group is
-#' therefore a consensus ranking — the object worth reporting — rather than a
+#' therefore a consensus ranking, the object worth reporting, rather than a
 #' point in some embedding.
 #'
 #' @section Why this returns the same answer twice:
 #' Nothing here draws from the RNG. The starting partition is the exactly
 #' optimal set of medoids, found by enumerating every one of them while the
-#' panel is small enough to allow it, and the refinement is deterministic;
-#' ties are broken on the lowest index. A panel of judges is small, so the
-#' usual reason for random restarts — an initialisation too expensive to
-#' optimise — does not apply, and an inference function that answered
-#' differently on every call would be worth less than the answer it gives.
+#' panel is small enough to allow it, and the refinement is deterministic; ties
+#' are broken on the lowest index. A panel of judges is small, so the usual
+#' reason for random restarts, an initialisation too expensive to optimise, does
+#' not apply, and an inference function that answered differently on every call
+#' would be worth less than the answer it gives.
 #'
 #' Above `medoid_limit` candidate sets the enumeration is replaced by a greedy
 #' choice, which is still deterministic but no longer certified optimal; the
@@ -34,32 +34,32 @@
 #' silhouette of exactly 1: on eight variables and six judges one transposition
 #' apart, the silhouette alone split a single population 62% of the time. Those
 #' same zero distances are what makes a real division obvious, so the statistic
-#' cannot tell the two cases apart by itself — it has to be told what one
+#' cannot tell the two cases apart by itself. It has to be told what one
 #' population looks like.
 #'
-#' So the panel's best split in two is compared against the best split in two
-#' of `n_null` panels drawn from one population, spread to match the mean
-#' distance between the judges actually supplied. The panel is divided only
-#' when fewer than `alpha` of those reference panels split as sharply. What the
-#' test costs in divisions missed, and what it buys in divisions not invented,
-#' is measured in `inst/simulations/cluster-recovery.R`.
+#' So the panel's best split in two is compared against the best split in two of
+#' `n_null` panels drawn from one population, spread to match the mean distance
+#' between the judges actually supplied. The panel is divided only when fewer
+#' than `alpha` of those reference panels split as sharply. What the test costs
+#' in divisions missed, and what it buys in divisions not invented, is measured
+#' in `inst/simulations/cluster-recovery.R`.
 #'
 #' @section What it is measured to do:
 #' From that script, 300 panels per cell of eight variables. A panel drawn from
 #' **one population** is divided anyway 2.0% of the time at six judges (4.0%
 #' when those judges are noisier), 5.3% at ten and 8.3% at sixteen, against a
-#' nominal `alpha` of 5%. Two well-separated
-#' populations are recovered exactly 0.877 of the time at six judges, 0.873 at
-#' ten and 0.943 at sixteen; on groups that are close, or judges that are noisy,
-#' it falls a long way — 0.360 at six judges with the group centres four
-#' transpositions apart, and 0.073 when the judges stray three.
+#' nominal `alpha` of 5%. Two well-separated populations are recovered exactly
+#' 0.877 of the time at six judges, 0.873 at ten and 0.943 at sixteen; on groups
+#' that are close, or judges that are noisy, it falls a long way: 0.360 at six
+#' judges with the group centres four transpositions apart, and 0.073 when the
+#' judges stray three.
 #'
-#' On real panels of permutation against LOCO judges over correlated
-#' predictors, 100 datasets per cell, the panel divides in two 23 times in 100
-#' at a correlation of 0.9 with six judges and 82 times in 100 with sixteen.
-#' All 23 of the six-judge divisions fell exactly on the method families; 69 of
-#' the 82 at sixteen judges did. Panel size is what buys sensitivity here, and
-#' six judges — two methods by three seeds — has little of it.
+#' On real panels of permutation against LOCO judges over correlated predictors,
+#' 100 datasets per cell, the panel divides in two 23 times in 100 at a
+#' correlation of 0.9 with six judges and 82 times in 100 with sixteen. All 23
+#' of the six-judge divisions fell exactly on the method families; 69 of the 82
+#' at sixteen judges did. Panel size is what buys sensitivity here, and six
+#' judges, which is two methods by three seeds, has little of it.
 #' `vignette("method-disagreement")` works through one of the panels that does
 #' not divide.
 #'
@@ -72,19 +72,19 @@
 #' statistic.
 #'
 #' A panel the test rejects is therefore reported as divided **in two**, which
-#' is the division the evidence is about. Reading `k` off the largest
-#' silhouette instead attaches an uncalibrated number to a calibrated decision,
-#' and it measures worse: on two separated groups the partition is recovered
-#' exactly 0.943 of the time at sixteen judges against 0.690 for the largest
-#' silhouette, at the same false division rate. It is also what made larger
-#' panels perform worse — recovery fell from 0.877 at six judges to 0.690 at
-#' sixteen, and now rises to 0.943. Pass `k` explicitly to fit any other
-#' number; a panel that genuinely holds three groups is reported as two.
+#' is the division the evidence is about. Reading `k` off the largest silhouette
+#' instead attaches an uncalibrated number to a calibrated decision, and it
+#' measures worse: on two separated groups the partition is recovered exactly
+#' 0.943 of the time at sixteen judges against 0.690 for the largest silhouette,
+#' at the same false division rate. It is also what made larger panels perform
+#' worse: recovery fell from 0.877 at six judges to 0.690 at sixteen, and now
+#' rises to 0.943. Pass `k` explicitly to fit any other number; a panel that
+#' genuinely holds three groups is reported as two.
 #'
-#' All of it is read off the distances alone, through the exactly optimal
-#' medoid partitions — which is what makes hundreds of reference panels
-#' affordable. Which judge goes where, and what each group ranks, is the
-#' k-medians refinement of that partition.
+#' All of it is read off the distances alone, through the exactly optimal medoid
+#' partitions, which is what makes hundreds of reference panels affordable.
+#' Which judge goes where, and what each group ranks, is the k-medians
+#' refinement of that partition.
 #'
 #' @section Reproducibility:
 #' The reference panels are drawn from `seed`, and the session's random stream
@@ -113,7 +113,7 @@
 #'   consensus rankings, one per row), `consensus` (the `consensus_rank` object
 #'   behind each centre), `distances` (the Kemeny-Snell distances between
 #'   judges), `criterion` (the silhouette at every `k` the search could have
-#'   used, reported so the shape of the panel can be inspected — the automatic
+#'   used, reported so the shape of the panel can be inspected; the automatic
 #'   choice is the test's, not this column's maximum), `test` (the observed
 #'   statistic, its p-value against one population, and the spread the
 #'   reference panels were given), and the settings used.
@@ -340,9 +340,9 @@ group_centre <- function(x, rows, weights, algorithm) {
 #' is the best set of `k` medoids, which is enumerated exactly while the number
 #' of candidate sets stays under `medoid_limit`.
 #'
-#' An iteration that would empty a group is discarded and the previous
-#' partition kept: `k` groups were asked for, and the alternative — moving a
-#' judge in to refill the group — has no non-arbitrary choice of which judge.
+#' An iteration that would empty a group is discarded and the previous partition
+#' kept: `k` groups were asked for, and the alternative of moving a judge in to
+#' refill the group has no non-arbitrary choice of which judge.
 #'
 #' @return A list with `cluster`, `centres`, `consensus`, `within` and
 #'   `exact_start`.
@@ -470,15 +470,15 @@ null_panel <- function(m, p, steps) {
 #' power; measured, it cost far more. Matching the 25th percentile of a split
 #' panel targets a within-group distance, which makes the reference population
 #' tight, and a tight population repeats itself: its panels fill with identical
-#' rankings, identical rankings sit at distance zero, and a reference panel
-#' full of zero distances scores a silhouette near 1. The reference then
-#' becomes almost impossible to beat. On two groups sixteen transpositions
-#' apart the split was found 0.805 of the time with the mean and 0.173 with the
-#' quantile, at the same level. The mean it is.
+#' rankings, identical rankings sit at distance zero, and a reference panel full
+#' of zero distances scores a silhouette near 1. The reference then becomes
+#' almost impossible to beat. On two groups sixteen transpositions apart the
+#' split was found 0.805 of the time with the mean and 0.173 with the quantile,
+#' at the same level. The mean it is.
 #'
-#' The walk saturates — past a certain length the rankings are uniform and the
-#' distances stop growing — so a panel more scattered than uniform is matched
-#' by the longest walk on the grid, which is as close as one population comes.
+#' The walk saturates. Past a certain length the rankings are uniform and the
+#' distances stop growing, so a panel more scattered than uniform is matched by
+#' the longest walk on the grid, which is as close as one population comes.
 #'
 #' @param target The observed panel's mean pairwise distance.
 #' @return The number of transpositions, one of the values on the grid.
@@ -495,11 +495,11 @@ calibrate_spread <- function(target, m, p, panels = 30L) {
 
 #' Does this panel divide more sharply than one population would?
 #'
-#' The observed statistic is the panel's sharpest division in two. The
-#' reference is the same quantity on panels of the same shape drawn from a
-#' single population spread to match, and the p-value is the usual Monte Carlo
-#' one, never zero. `candidates` is `2L` for the test itself; the argument is
-#' kept general because the same machinery scores the reference panels.
+#' The observed statistic is the panel's sharpest division in two. The reference
+#' is the same quantity on panels of the same shape drawn from a single
+#' population spread to match, and the p-value is the usual Monte Carlo one,
+#' never zero. `candidates` is `2L` for the test itself; the argument is kept
+#' general because the same machinery scores the reference panels.
 #'
 #' The reference panels come from `seed` and the caller's stream is put back
 #' afterwards, so the p-value is a property of the panel and not of when the
@@ -574,8 +574,8 @@ initial_medoids <- function(d, k, medoid_limit = 20000L) {
 #'
 #' Written out rather than taken from a dependency used for this one number.
 #' `cluster::silhouette()` is the reference, and a test checks the two agree.
-#' The conventions are its own: a judge alone in its group scores 0, and so
-#' does a judge at distance zero from everything.
+#' The conventions are its own: a judge alone in its group scores 0, and so does
+#' a judge at distance zero from everything.
 #'
 #' @return A numeric vector, one width per judge.
 #' @noRd

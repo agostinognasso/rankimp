@@ -45,7 +45,7 @@ data-generating coefficients:\tabular{lllll}{
 }
 
 
-A selected variable is almost never one that did not deserve it — at most 3\%
+A selected variable is almost never one that did not deserve it: at most 3\%
 of selections, and 0\% at the thresholds that make the strongest claim. The
 price is on the other side: past a threshold of 1 it selects between a third
 and a half of the variables that did deserve it. Read a short list as "these

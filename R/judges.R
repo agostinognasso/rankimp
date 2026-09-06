@@ -1,10 +1,10 @@
 #' Turn importance scores into rankings
 #'
-#' Each row of `x` holds the importance that one judge assigns to each
-#' variable; the result holds the rank that judge gives each variable, with
-#' `1` for the most important. Variables a judge scores equally receive the
-#' same rank, because pretending to separate them would invent information
-#' the judge never supplied.
+#' Each row of `x` holds the importance that one judge assigns to each variable;
+#' the result holds the rank that judge gives each variable, with `1` for the
+#' most important. Variables a judge scores equally receive the same rank,
+#' because pretending to separate them would invent information the judge never
+#' supplied.
 #'
 #' @param x Numeric matrix or data frame of importance scores, judges in
 #'   rows and variables in columns. Higher is more important.
@@ -36,20 +36,19 @@ importance_to_rank <- function(x, ties_method = c("min", "average", "first")) {
 
 #' Assemble the panel of judges
 #'
-#' Builds the ranking matrix consumed by [consensus_rank()] from any
-#' combination of the four axes along which a variable importance ranking can
-#' vary: the *method* used, the *model* it interrogates, the *seed* of the
-#' ensemble, and the *resample* of the data. Every combination of the active
-#' axes becomes one judge — one row of the panel — whose importance scores are
-#' computed by the matching backend and turned into a ranking with
-#' [importance_to_rank()].
+#' Builds the ranking matrix consumed by [consensus_rank()] from any combination
+#' of the four axes along which a variable importance ranking can vary: the
+#' *method* used, the *model* it interrogates, the *seed* of the ensemble, and
+#' the *resample* of the data. Every combination of the active axes becomes one
+#' judge, one row of the panel, whose importance scores are computed by the
+#' matching backend and turned into a ranking with [importance_to_rank()].
 #'
 #' @section The four axes:
 #' * **Methods** (`methods`): each importance method is one voice; see
 #'   [importance_backends].
-#' * **Models** (`fit_list`): several fitted models — a cross-model consensus
-#'   asks which variables matter regardless of the learner. All models must be
-#'   trained on the same predictors.
+#' * **Models** (`fit_list`): several fitted models, so that a cross-model
+#'   consensus asks which variables matter regardless of the learner. All
+#'   models must be trained on the same predictors.
 #' * **Seeds** (`seeds`): each seed refits every model on `data` after
 #'   `set.seed(seed)`, measuring the stability of the ranking under the
 #'   ensemble's own randomness. Refits keep the original number of trees and
@@ -57,20 +56,20 @@ importance_to_rank <- function(x, ties_method = c("min", "average", "first")) {
 #' * **Resamples** (`resamples`): an `rset` from the rsample package (v-fold
 #'   CV or bootstrap). Every split refits the models on its analysis set;
 #'   permutation and SHAP importance are then computed on the assessment set,
-#'   and LOCO refits on the analysis set and evaluates on the assessment set —
-#'   the out-of-sample versions of those importances. MDI, which has no data
-#'   argument, is read off the refit.
+#'   and LOCO refits on the analysis set and evaluates on the assessment set,
+#'   giving the out-of-sample versions of those importances. MDI, which has no
+#'   data argument, is read off the refit.
 #'
 #' Without `seeds` or `resamples` the supplied fits are used as they are, and
-#' data-dependent importances are in-sample. Axes combine as a full grid:
-#' models × methods × seeds × resamples.
+#' data-dependent importances are in-sample. Axes combine as a full grid: models
+#' × methods × seeds × resamples.
 #'
 #' @section The recipe:
-#' The panel keeps the arguments that built it — the fits, the data, the target,
-#' the methods, the axes and the backend settings — so that
-#' [rank_confsets()] can rebuild it on a bootstrap sample of the rows without
-#' being handed them all again. That makes the panel as large as the objects it
-#' refers to.
+#' The panel keeps the arguments that built it: the fits, the data, the target,
+#' the methods, the axes and the backend settings. That is what lets
+#' [rank_confsets()] rebuild it on a bootstrap sample of the rows without being
+#' handed them all again. That makes the panel as large as the objects it refers
+#' to.
 #'
 #' @section Reproducibility:
 #' Permutation shuffles, SHAP row subsampling and refits draw from the session

@@ -1,20 +1,20 @@
 #' Kemeny consensus ranking of variable importance
 #'
 #' Given `K` judges, each expressing a ranking over the same `p` variables,
-#' returns the median ranking in the sense of Kemeny: the ranking that
-#' minimises the total Kemeny-Snell distance to the judges,
-#' \deqn{\pi^{*} = \arg\min_{\pi} \sum_{k=1}^{K} w_k \, d_{KS}(\pi, \pi_k).}
+#' returns the median ranking in the sense of Kemeny: the ranking that minimises
+#' the total Kemeny-Snell distance to the judges, \deqn{\pi^{*} = \arg\min_{\pi}
+#' \sum_{k=1}^{K} w_k \, d_{KS}(\pi, \pi_k).}
 #'
-#' Ties in the consensus are meaningful and are kept by default. Variables
-#' that the judges genuinely cannot separate *should* come out equal, which
-#' is what distinguishes a Kemeny median from an average of Borda scores.
-#' Set `ties = FALSE` to force a linear order.
+#' Ties in the consensus are meaningful and are kept by default. Variables that
+#' the judges genuinely cannot separate *should* come out equal, which is what
+#' distinguishes a Kemeny median from an average of Borda scores. Set `ties =
+#' FALSE` to force a linear order.
 #'
 #' @section When the median is not unique:
-#' Several rankings can attain the same minimum, and `ConsRank` returns them all.
-#' Reporting one of them would be arbitrary in a way that is not neutral: which
-#' comes first depends on the order of the columns, so a variable can gain a
-#' position by sitting to the left. That was measured — on a symmetric panel,
+#' Several rankings can attain the same minimum, and `ConsRank` returns them
+#' all. Reporting one of them would be arbitrary in a way that is not neutral:
+#' which comes first depends on the order of the columns, so a variable can gain
+#' a position by sitting to the left. That was measured: on a symmetric panel,
 #' permuting the columns changed the winner; in a simulation with three
 #' exchangeable noise predictors the leftmost took the best rank systematically,
 #' and the situation is not rare, arising in 57% to 98% of replicates there.
@@ -29,9 +29,9 @@
 #' Finding the Kemeny median is NP-hard, so `algorithm = "auto"` picks by
 #' problem size:
 #'
-#' * `p <= 10` — `"exact"`, branch-and-bound.
-#' * `11 <= p <= 50` — `"quick"`.
-#' * `p > 50` — `"fast"`, with a message. The integer-programming route of the
+#' * `p <= 10`: `"exact"`, branch-and-bound.
+#' * `11 <= p <= 50`: `"quick"`.
+#' * `p > 50`: `"fast"`, with a message. The integer-programming route of the
 #'   roadmap, which would restore optimality guarantees at this size, is a phase
 #'   F2 deliverable.
 #'
@@ -144,15 +144,15 @@ consensus_rank <- function(x,
 #' The Kemeny median need not be unique, and `ConsRank` returns every ranking
 #' that attains the minimum. Taking the first is not neutral: which one comes
 #' first depends on the order of the columns. On a symmetric panel of three
-#' indistinguishable variables, permuting the columns changed which variable won,
-#' and in a simulation with three exchangeable noise predictors the leftmost took
-#' the best rank systematically — across designs where several optima arose in
-#' 57% to 98% of replicates.
+#' indistinguishable variables, permuting the columns changed which variable
+#' won, and in a simulation with three exchangeable noise predictors the
+#' leftmost took the best rank systematically, across designs where several
+#' optima arose in 57% to 98% of replicates.
 #'
 #' Averaging each variable's position over the optimal set and re-ranking with
-#' ties lets the variables the objective cannot separate come out equal, which is
-#' what a Kemeny median over weak orderings is for. The full set stays available
-#' as `consensus_all`.
+#' ties lets the variables the objective cannot separate come out equal, which
+#' is what a Kemeny median over weak orderings is for. The full set stays
+#' available as `consensus_all`.
 #'
 #' @param consensus_all Matrix of optimal consensus rankings, one per row.
 #' @return A named integer vector of ranks, one per variable.
@@ -168,15 +168,15 @@ combine_optima <- function(consensus_all) {
 #'
 #' `ConsRank::consrank()` reports progress in two different ways. Branch counts
 #' are printed when `ps = TRUE`, and are silenced by `ps = FALSE`. Degenerate
-#' panels — a combined input matrix of zeros, for instance, where every ranking
-#' is a median — announce themselves with `print()` regardless. `print()` writes
-#' to stdout and no condition handler can intercept it, so the output has to be
+#' panels, such as a combined input matrix of zeros where every ranking is a
+#' median, announce themselves with `print()` regardless. `print()` writes to
+#' stdout and no condition handler can intercept it, so the output has to be
 #' captured; `suppressMessages()` covers the conditions the package does raise.
 #'
-#' An earlier version of this function used
-#' `withCallingHandlers(message = function(m) invisible(NULL))`, which suppresses
-#' nothing at all: a calling handler that does not invoke `muffleMessage` lets
-#' the message through untouched.
+#' An earlier version of this function used `withCallingHandlers(message =
+#' function(m) invisible(NULL))`, which suppresses nothing at all: a calling
+#' handler that does not invoke `muffleMessage` lets the message through
+#' untouched.
 #'
 #' @param ... Passed to `ConsRank::consrank()`.
 #' @return The list returned by `ConsRank::consrank()`.
