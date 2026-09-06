@@ -1,4 +1,4 @@
-# rankimp 0.0.0.9000
+# rankimp 0.1.0
 
 ## New
 
@@ -37,6 +37,20 @@
   `tau_x` can be read as a split panel rather than as noise.
 * `autoplot()` for `rank_confsets` draws the consensus ranking with its
   intervals.
+* `autoplot()` for `consensus_rank` draws the consensus over every rank the
+  judges gave, point area being the number of judges at each rank. One number
+  per variable is equally consistent with a panel that agreed and one that was
+  split, and this is the difference — per variable, where `tau_x` and
+  `item_consensus()` measure it per judge. It was the last entry point still
+  raising "not implemented"; the helper that raised it is gone with it.
+* `vignette("credit-scoring")` runs the four axes at once on a synthetic
+  portfolio — two model families, two methods, three folds, two seeds, 24
+  judges — and is no longer a placeholder. Its point is what the package
+  refuses to say: the three real drivers all come back with the interval
+  `[1, 3]`, so `rank_select(threshold = 2)` returns nothing, and only the
+  unordered set of three is defensible. `judge_clusters()` then finds the panel
+  divided along **method** rather than model family, which is mean decrease in
+  impurity preferring the continuous variable to the small count.
 * `vignette("against-set-stability")` separates this package from `stabm`:
   two panels with identical Nogueira and Jaccard set stability, one of which has
   a completely unordered top three.
@@ -67,6 +81,23 @@
 
 ## Correctness
 
+* `judge_clusters()` is implemented: k-medians in the space of the Kemeny-Snell
+  distance, started from the exactly optimal set of medoids and refined until
+  the assignments settle, with each group's centre the Kemeny median of its own
+  members. It draws nothing from the RNG and returns the same answer on every
+  call. `k = NULL` divides the panel only when it splits more sharply than a
+  single population of judges would, tested against reference panels spread to
+  match — without which the silhouette alone divided a homogeneous panel 62% of
+  the time. A panel the test rejects is reported as divided **in two**, which is
+  the division the evidence is about: reading `k` off the largest silhouette
+  instead attaches an uncalibrated number to a calibrated decision, and it
+  measured worse everywhere it differed — on ten judges or more it never once
+  chose `k = 2`, and recovery of a true two-group partition *fell* as judges
+  were added (0.877 at six, 0.747 at ten, 0.690 at sixteen) where it now rises
+  to 0.943, at an identical false division rate. `autoplot()` shows the panel in
+  Kemeny-Snell space. Behaviour is measured in
+  `inst/simulations/cluster-recovery.R` rather than asserted.
+
 * `consensus_rank()` no longer leaks `ConsRank`'s console output on degenerate
   panels. The previous calling handler never invoked `muffleMessage()`, so it
   suppressed nothing, and the messages that matter are emitted with `print()`
@@ -76,13 +107,46 @@
   a matrix of importance scores, contradicting the documented contract. The
   error now names the offending judges and points at `importance_to_rank()`.
 
-* `?rank_confsets` and `vignette("stability")` now report the coverage the
-  intervals were measured to have rather than leaving the nominal level to
-  speak for itself. A nominal 95% set covered the true rank of a signal
-  variable between 0.58 and 0.95 of the time depending on the design, the
-  sample size and which bootstrap was used; the data bootstrap covered better
-  than the judge bootstrap in all twelve combinations measured. The simulation
-  ships as `inst/simulations/rank-coverage.R`.
+* `prob_topk()` and `rank_select()` are measured for the first time, in
+  `inst/simulations/select-calibration.R`. Both read the bootstrap rankings the
+  resample bug used to repeat, so neither had ever been seen working. On 300
+  panels of eight close predictors and eighty rows: `prob_topk()` is
+  conservative in the middle of its range and accurate at the ends — a variable
+  given 0.44 is in the top `k` 56% of the time, one given 0.98 is there 98% of
+  the time — and `rank_select()` falsely selects at most 3% of what it selects,
+  while selecting between a third and a half of the variables that deserved it.
+  Both numbers are now in the documentation.
+
+* The warning in `?rank_confsets` that a data-bootstrap interval "need not
+  contain the consensus rank" described the resample bug, not the method. It
+  rested on one panel with an interval of `[3, 5]` around a consensus rank of 2,
+  produced by the bootstrap that repeated its draws and so reported intervals
+  too narrow to be believed. Re-measured on the fixed machinery over the same
+  design, it happened in none of 2,400 variable-replicates. What is real, and
+  now documented in its place, is the drift: a replicate ranks on about 0.632`n`
+  distinct rows, so the top of the ranking drifts down and the bottom drifts up
+  — 0.55 ranks for the second variable, 1.00 for the eighth.
+
+* `rank_confsets(type = "data")` draws a fresh resample for every replicate.
+  `panel_scores()` calls `set.seed()` for the seed axis and used to leave the
+  session stream parked where the last seed put it; the bootstrap loop draws
+  its next resample from that stream, so every replicate set out from the same
+  state and the resamples fell into a cycle a few draws long. Four hundred
+  requested replicates held about eight distinct ones, and `n_boot` bought
+  almost nothing beyond the first few. The panel now puts the caller's stream
+  back where it found it — so `importance_judges()` no longer moves it either —
+  and the bootstrap restores it around each replicate, which keeps the
+  replicates independent whatever a backend does with the RNG. The judge
+  bootstrap was never affected: nothing on that path seeds.
+
+* `?rank_confsets` and `vignette("stability")` report the coverage the intervals
+  were measured to have rather than leaving the nominal level to speak for
+  itself, and the two bootstraps miss it in opposite directions. Resampling the
+  data covered 0.966 to 0.998 of the time across the six cells measured — at or
+  above the nominal 0.95, and wide: 5.1 of 8 ranks on the hardest cell.
+  Resampling the judges covered 0.582 to 0.929, and never reached the nominal
+  level. Fifty replicates are enough for the data bootstrap (0.966 against 0.970
+  at 200). The simulation ships as `inst/simulations/rank-coverage.R`.
 
 ## API
 
@@ -110,5 +174,5 @@
   agreement and warning when several consensus rankings are equally optimal.
 * The ingestion (F1), inference (F3) and heterogeneity (F4) entry points were
   declared and documented from the first commit, failing with an error naming
-  their phase until implemented. Of these, only `judge_clusters()` (F4) still
-  does.
+  their phase until implemented. All of them are now implemented;
+  `judge_clusters()` (F4) was the last.

@@ -102,6 +102,13 @@ refers to.
 
 Permutation shuffles, SHAP row subsampling and refits draw from the session
 RNG; call \code{set.seed()} before this function for a reproducible panel.
+
+The \code{seeds} axis sets seeds of its own, and puts the stream back where it
+found it, so building a panel does not move the caller's RNG. That is more
+than politeness: \code{\link[=rank_confsets]{rank_confsets()}} with \code{type = "data"} rebuilds the panel
+once per bootstrap replicate and draws the next resample from this same
+stream, and a panel that parked it made every replicate resample the same
+rows.
 }
 
 \examples{
