@@ -76,6 +76,13 @@ importance_to_rank <- function(x, ties_method = c("min", "average", "first")) {
 #' Permutation shuffles, SHAP row subsampling and refits draw from the session
 #' RNG; call `set.seed()` before this function for a reproducible panel.
 #'
+#' The `seeds` axis sets seeds of its own, and puts the stream back where it
+#' found it, so building a panel does not move the caller's RNG. That is more
+#' than politeness: [rank_confsets()] with `type = "data"` rebuilds the panel
+#' once per bootstrap replicate and draws the next resample from this same
+#' stream, and a panel that parked it made every replicate resample the same
+#' rows.
+#'
 #' @param fit_list A fitted model, or a (preferably named) list of them.
 #'   Supported engines: randomForest, ranger. Unnamed models are called
 #'   `model1`, `model2`, ...
@@ -251,6 +258,16 @@ importance_judges <- function(fit_list,
 #' @noRd
 panel_scores <- function(fit_list, engines, predictors, methods, target,
                          data, splits, seeds = NULL, refitting = FALSE, ...) {
+  # The seed axis calls `set.seed()`, which parks the session stream at a state
+  # the last seed fixes. Harmless for a single panel; fatal for the data
+  # bootstrap, which asks for one panel per replicate and draws the next
+  # resample in between, so every replicate would set out from the same state
+  # and the resamples fall into a cycle a handful of draws long. Hand the
+  # stream back where it was found.
+  if (refitting && !is.null(seeds)) {
+    entry_state <- capture_seed()
+    on.exit(restore_seed(entry_state), add = TRUE)
+  }
   model_names <- names(fit_list)
   combos <- expand.grid(
     split = seq_along(splits),
@@ -304,6 +321,35 @@ panel_scores <- function(fit_list, engines, predictors, methods, target,
   rownames(scores) <- provenance$judge
   colnames(scores) <- predictors
   list(scores = scores, provenance = provenance)
+}
+
+#' Snapshot the session's random stream, and put it back
+#'
+#' Restoring is the only way a function that calls `set.seed()` for its own
+#' reproducibility can leave the caller's stream alone; `withr::with_seed()`
+#' does the same thing. `.Random.seed` does not exist until something has drawn
+#' from the stream, and "not there" is then the state to put back.
+#'
+#' @noRd
+capture_seed <- function() {
+  if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+    get(".Random.seed", envir = globalenv(), inherits = FALSE)
+  } else {
+    NULL
+  }
+}
+
+#' @rdname capture_seed
+#' @noRd
+restore_seed <- function(state) {
+  if (is.null(state)) {
+    if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+      rm(".Random.seed", envir = globalenv())
+    }
+  } else {
+    assign(".Random.seed", state, envir = globalenv())
+  }
+  invisible(NULL)
 }
 
 #' The single split that trains and evaluates on all of the data

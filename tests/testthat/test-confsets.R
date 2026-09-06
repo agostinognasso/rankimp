@@ -237,6 +237,58 @@ test_that("the data bootstrap is reproducible from a seed", {
   expect_identical(first$ranks, again$ranks)
 })
 
+test_that("the data bootstrap draws a fresh resample for every replicate", {
+  # The defect this stands in for: rebuilding the panel called `set.seed()` for
+  # the seed axis and left the stream there, so the loop drew its next resample
+  # from a state fixed by the last seed and kept redrawing the same rows. The
+  # replicates then repeat with a short period — measured on eighty rows and a
+  # panel of six judges, four hundred requested replicates held about eight
+  # distinct ones, and `n_boot` bought nothing beyond the first few.
+  #
+  # Stated as something exact: the loop consumes one resample per replicate from
+  # the session stream and nothing else, so the stream ends where `n_boot`
+  # draws of `sample.int()` would have left it.
+  skip_if_not_installed("randomForest")
+  set.seed(40)
+  cr <- consensus_rank(importance_judges(
+    rf_reg, methods = c("permutation", "mdi"),
+    data = reg_data, target = "y", seeds = 1:2, n_perm = 2
+  ))
+  n <- nrow(reg_data)
+
+  set.seed(41)
+  cb <- rank_confsets(cr, n_boot = 5, type = "data")
+  after <- get(".Random.seed", envir = globalenv())
+
+  set.seed(41)
+  for (b in seq_len(5)) sample.int(n, n, replace = TRUE)
+
+  expect_identical(after, get(".Random.seed", envir = globalenv()))
+  expect_identical(cb$failed, 0L)
+})
+
+test_that("the judge bootstrap draws a fresh reweighting for every replicate", {
+  # The same invariant on the other branch: one draw per replicate from the
+  # caller's stream, so that what the solver does with the RNG cannot correlate
+  # one replicate with the next.
+  skip_if_not_installed("randomForest")
+  set.seed(42)
+  cr <- consensus_rank(importance_judges(
+    rf_reg, methods = c("permutation", "mdi"),
+    data = reg_data, target = "y", seeds = 1:2, n_perm = 2
+  ))
+  k <- nrow(cr$judges)
+
+  set.seed(43)
+  rank_confsets(cr, n_boot = 6)
+  after <- get(".Random.seed", envir = globalenv())
+
+  set.seed(43)
+  for (b in seq_len(6)) stats::rmultinom(1L, size = k, prob = rep(1 / k, k))
+
+  expect_identical(after, get(".Random.seed", envir = globalenv()))
+})
+
 test_that("a replicate that fails is dropped rather than fatal", {
   # The failure this stands in for is real and was measured: a response class
   # too rare to survive a bootstrap draw makes randomForest refuse to refit

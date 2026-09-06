@@ -232,12 +232,17 @@ boot_judges <- function(cr, n_boot, engine) {
     drawn <- w > 0
     if (sum(drawn) < 1L) next # cannot happen with size = k, but be explicit
 
+    # As in `boot_data()`: a replicate consumes its own draw from the caller's
+    # stream and nothing else, so that what the solver does with the RNG cannot
+    # correlate one replicate with the next.
+    state <- capture_seed()
     fit <- quiet_consrank(
       X = judges[drawn, , drop = FALSE],
       wk = matrix(w[drawn], ncol = 1L),
       algorithm = engine,
       full = !cr$ties
     )
+    restore_seed(state)
     ranks[b, ] <- as.integer(combine_optima(as.matrix(fit$Consensus)))
   }
 
@@ -302,12 +307,20 @@ boot_data <- function(cr, n_boot, engine) {
       in_bag
     }
 
+    # The replicates are independent draws only for as long as nothing between
+    # them moves the stream to a fixed place, and rebuilding the panel runs
+    # whatever a backend does with the RNG — this is where a `set.seed()` in
+    # `panel_scores()` once made every replicate resample the same rows. The
+    # state that draws the next resample is put back by hand rather than
+    # trusted.
+    state <- capture_seed()
     outcome <- tryCatch(
       data_replicate(recipe, in_bag, eval_rows, variables, engine,
                      weights = if (keep_weights) cr$weights else NULL,
                      ties = cr$ties),
       error = function(e) e
     )
+    restore_seed(state)
 
     if (inherits(outcome, "error")) {
       failed <- failed + 1L

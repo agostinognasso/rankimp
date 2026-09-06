@@ -111,6 +111,33 @@ test_that("the seed axis refits and records provenance", {
   expect_false(identical(scores[1L, ], scores[2L, ]))
 })
 
+test_that("the seed axis leaves the caller's random stream where it found it", {
+  # `set.seed()` for the seed axis used to be the last word on the session
+  # stream, and whatever ran next carried on from a state the seed had fixed.
+  # The data bootstrap is what that broke — it draws its next resample from
+  # exactly this stream, so every replicate set out from the same place — but a
+  # panel has no business moving a caller's RNG in any case.
+  skip_if_not_installed("randomForest")
+  set.seed(13)
+  before <- get(".Random.seed", envir = globalenv())
+  invisible(importance_judges(rf_reg, methods = "permutation", data = reg_data,
+                              target = "y", seeds = c(1, 2), n_perm = 2))
+
+  expect_identical(get(".Random.seed", envir = globalenv()), before)
+})
+
+test_that("without the seed axis the stream advances as usual", {
+  # Nothing is set, so nothing is put back: two calls in a row must differ.
+  skip_if_not_installed("randomForest")
+  set.seed(14)
+  first <- importance_judges(rf_reg, methods = "permutation", data = reg_data,
+                             target = "y", n_perm = 2)
+  second <- importance_judges(rf_reg, methods = "permutation", data = reg_data,
+                              target = "y", n_perm = 2)
+
+  expect_false(identical(attr(first, "scores"), attr(second, "scores")))
+})
+
 test_that("the resample axis refits per split", {
   skip_if_not_installed("randomForest")
   skip_if_not_installed("rsample")
