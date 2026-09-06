@@ -54,8 +54,8 @@ the data-generating coefficients:
 | 5 | 1.56 | 0.002 | 0.003 | 0.312 |
 | 6 | 2.22 | 0.030 | 0.067 | 0.431 |
 
-A selected variable is almost never one that did not deserve it — at
-most 3% of selections, and 0% at the thresholds that make the strongest
+A selected variable is almost never one that did not deserve it: at most
+3% of selections, and 0% at the thresholds that make the strongest
 claim. The price is on the other side: past a threshold of 1 it selects
 between a third and a half of the variables that did deserve it. Read a
 short list as "these I can defend", never as "these are the ones that

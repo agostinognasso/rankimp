@@ -74,7 +74,7 @@ Set `ties = FALSE` to force a linear order.
 Several rankings can attain the same minimum, and `ConsRank` returns
 them all. Reporting one of them would be arbitrary in a way that is not
 neutral: which comes first depends on the order of the columns, so a
-variable can gain a position by sitting to the left. That was measured —
+variable can gain a position by sitting to the left. That was measured:
 on a symmetric panel, permuting the columns changed the winner; in a
 simulation with three exchangeable noise predictors the leftmost took
 the best rank systematically, and the situation is not rare, arising in
@@ -91,11 +91,11 @@ orderings. The whole set remains in `consensus_all`.
 Finding the Kemeny median is NP-hard, so `algorithm = "auto"` picks by
 problem size:
 
-- `p <= 10` — `"exact"`, branch-and-bound.
+- `p <= 10`: `"exact"`, branch-and-bound.
 
-- `11 <= p <= 50` — `"quick"`.
+- `11 <= p <= 50`: `"quick"`.
 
-- `p > 50` — `"fast"`, with a message. The integer-programming route of
+- `p > 50`: `"fast"`, with a message. The integer-programming route of
   the roadmap, which would restore optimality guarantees at this size,
   is a phase F2 deliverable.
 

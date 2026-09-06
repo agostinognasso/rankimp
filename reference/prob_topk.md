@@ -45,11 +45,11 @@ over `k = 1..6` and binned by the reported probability
 A variable given 0.44 is in the top `k` about 56% of the time, so the
 number understates by up to twelve points where it is least decisive,
 and is accurate where it is near 0 or near 1. The direction is the one
-to want — the function does not claim more than it can show — and it has
-the same cause as the wide intervals: a replicate sees about 0.632`n`
-distinct rows, ranks the variables worse than the full sample does, and
-drops some of them out of the top `k` more often than the sampling
-distribution would.
+to want, since the function never claims more than it can show, and the
+cause is the one behind the wide intervals: a replicate sees about
+0.632`n` distinct rows, ranks the variables worse than the full sample
+does, and drops some of them out of the top `k` more often than the
+sampling distribution would.
 
 ## See also
 

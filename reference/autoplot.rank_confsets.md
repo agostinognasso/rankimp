@@ -28,8 +28,8 @@ A `ggplot` object.
 
 ## Details
 
-The rank axis is reversed, so that rank 1 — the most important variable
-— sits at the top.
+The rank axis is reversed, so that rank 1, the most important variable,
+sits at the top.
 
 ## See also
 

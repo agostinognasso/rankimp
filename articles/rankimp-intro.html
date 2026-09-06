@@ -37,7 +37,9 @@
     <li><a class="dropdown-item" href="../articles/credit-scoring.html">Robustly important variables in credit scoring</a></li>
     <li><a class="dropdown-item" href="../articles/method-disagreement.html">When XAI methods disagree</a></li>
     <li><a class="dropdown-item" href="../articles/rankimp-intro.html">Consensus ranking of variable importance</a></li>
+    <li><a class="dropdown-item" href="../articles/reference.html">Every function, and when you want it</a></li>
     <li><a class="dropdown-item" href="../articles/stability.html">How stable is a variable importance ranking?</a></li>
+    <li><a class="dropdown-item" href="../articles/theory.html">The theory the package rests on</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -139,7 +141,7 @@ than an arbitrary order.</p>
 </h2>
 <p>Hand-building the score matrix is fine for a demonstration and
 tedious in practice. <code><a href="../reference/importance_judges.html">importance_judges()</a></code> builds it from
-fitted models directly — here two methods interrogating one forest, the
+fitted models directly, here two methods interrogating one forest, the
 smallest panel worth having:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
@@ -219,9 +221,9 @@ importance should say so rather than let the bias average out.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> age          2</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> balance      3</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> region       4</span></span></code></pre></div>
-<p><code><a href="../reference/judge_weights.html">judge_weights()</a></code> builds these vectors from a panel — one
-weight per method, or weights proportional to each judge’s agreement
-with the rest — and a panel built by
+<p><code><a href="../reference/judge_weights.html">judge_weights()</a></code> builds these vectors from a panel,
+either one weight per method or weights proportional to each judge’s
+agreement with the rest, and a panel built by
 <code>importance_judges(..., weights = )</code> carries them into
 <code><a href="../reference/consensus_rank.html">consensus_rank()</a></code> on its own.</p>
 </div>

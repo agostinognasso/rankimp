@@ -30,7 +30,7 @@ A `ggplot` object.
 What it is for: a consensus ranking reports one number per variable, and
 that number is equally consistent with a panel that agreed and a panel
 that was split down the middle. The spread behind each point is the
-difference, and it is per variable — `tau_x` and
+difference, and it is per variable. `tau_x` and
 [`item_consensus()`](item_consensus.md) measure agreement per *judge*,
 which is a different question and will not tell you *which* variables
 the panel could not place.
@@ -41,8 +41,8 @@ Where the Kemeny median is not unique the plot plots the combined
 ranking, the one [`consensus_rank()`](consensus_rank.md) reports, and
 says so in the subtitle.
 
-The rank axis is reversed, so rank 1 — the most important variable —
-sits at the top.
+The rank axis is reversed, so rank 1, the most important variable, sits
+at the top.
 
 ## See also
 

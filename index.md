@@ -8,7 +8,7 @@ and is indefensible.
 
 `rankimp` treats every combination of method, seed, fold and model as a
 **judge** expressing a ranking over the predictors, and computes the
-Kemeny median of the panel — with ties, with judge weights, and with
+Kemeny median of the panel, with ties, with judge weights, and with
 confidence sets that say which parts of the ordering the evidence
 actually supports.
 
@@ -75,7 +75,7 @@ is one population or two.
 | F2 | Consensus, ties, algorithm selection | done |
 | F3 | Bootstrap, rank confidence sets, [`prob_topk()`](reference/prob_topk.md), [`rank_select()`](reference/rank_select.md) | done |
 | F4 | Judge clustering, plots, vignettes | done |
-| F5 | CRAN, methodological paper | — |
+| F5 | CRAN, methodological paper | not started |
 
 The inferential layer came first on purpose.
 [`consensus_rank()`](reference/consensus_rank.md) orchestrates
@@ -85,9 +85,9 @@ variable importance be falsified.
 
 ## Related work
 
-- [`ConsRank`](https://cran.r-project.org/package=ConsRank) — the Kemeny
+- [`ConsRank`](https://cran.r-project.org/package=ConsRank): the Kemeny
   median engine this package orchestrates.
-- [`e2tree`](https://cran.r-project.org/package=e2tree) — explains a
+- [`e2tree`](https://cran.r-project.org/package=e2tree): explains a
   forest with a single tree.
-- `Proximum` — how the forest represents the data whose variables are
+- `Proximum`: how the forest represents the data whose variables are
   ranked here.

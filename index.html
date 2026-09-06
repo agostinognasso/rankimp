@@ -39,7 +39,9 @@
     <li><a class="dropdown-item" href="articles/credit-scoring.html">Robustly important variables in credit scoring</a></li>
     <li><a class="dropdown-item" href="articles/method-disagreement.html">When XAI methods disagree</a></li>
     <li><a class="dropdown-item" href="articles/rankimp-intro.html">Consensus ranking of variable importance</a></li>
+    <li><a class="dropdown-item" href="articles/reference.html">Every function, and when you want it</a></li>
     <li><a class="dropdown-item" href="articles/stability.html">How stable is a variable importance ranking?</a></li>
+    <li><a class="dropdown-item" href="articles/theory.html">The theory the package rests on</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -62,7 +64,7 @@
 <!-- badges: start -->
 <!-- badges: end -->
 <p>Mean decrease in impurity, permutation importance, SHAP, LOCO and drop-column importance give different answers on the same data. So does one method under a different seed, or a different fold. Reporting a single ranking from a single method on a single fit is standard practice and is indefensible.</p>
-<p><code>rankimp</code> treats every combination of method, seed, fold and model as a <strong>judge</strong> expressing a ranking over the predictors, and computes the Kemeny median of the panel — with ties, with judge weights, and with confidence sets that say which parts of the ordering the evidence actually supports.</p>
+<p><code>rankimp</code> treats every combination of method, seed, fold and model as a <strong>judge</strong> expressing a ranking over the predictors, and computes the Kemeny median of the panel, with ties, with judge weights, and with confidence sets that say which parts of the ordering the evidence actually supports.</p>
 <p>It builds on <a href="https://cran.r-project.org/package=ConsRank" class="external-link"><code>ConsRank</code></a> for the consensus itself; the contribution is the inferential layer on top.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -143,7 +145,7 @@
 <tr>
 <td>F5</td>
 <td>CRAN, methodological paper</td>
-<td>—</td>
+<td>not started</td>
 </tr>
 </tbody>
 </table>
@@ -154,11 +156,11 @@
 </h2>
 <ul>
 <li>
-<a href="https://cran.r-project.org/package=ConsRank" class="external-link"><code>ConsRank</code></a> — the Kemeny median engine this package orchestrates.</li>
+<a href="https://cran.r-project.org/package=ConsRank" class="external-link"><code>ConsRank</code></a>: the Kemeny median engine this package orchestrates.</li>
 <li>
-<a href="https://cran.r-project.org/package=e2tree" class="external-link"><code>e2tree</code></a> — explains a forest with a single tree.</li>
+<a href="https://cran.r-project.org/package=e2tree" class="external-link"><code>e2tree</code></a>: explains a forest with a single tree.</li>
 <li>
-<code>Proximum</code> — how the forest represents the data whose variables are ranked here.</li>
+<code>Proximum</code>: how the forest represents the data whose variables are ranked here.</li>
 </ul>
 </div>
 </div>

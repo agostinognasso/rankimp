@@ -29,7 +29,7 @@ A `ggplot` object.
 What the picture is for: whether the panel is one cloud or several, and
 which judges sit between them. The Kemeny-Snell distance is
 integer-valued and rarely Euclidean, so two dimensions are a projection
-and not the thing itself — the subtitle reports how much of the distance
+and not the thing itself. The subtitle reports how much of the distance
 survives the projection, and a low figure means the plot is a sketch of
 the grouping rather than evidence for it.
 

@@ -26,7 +26,9 @@ with another is in the top k."></head><body>
     <li><a class="dropdown-item" href="../articles/credit-scoring.html">Robustly important variables in credit scoring</a></li>
     <li><a class="dropdown-item" href="../articles/method-disagreement.html">When XAI methods disagree</a></li>
     <li><a class="dropdown-item" href="../articles/rankimp-intro.html">Consensus ranking of variable importance</a></li>
+    <li><a class="dropdown-item" href="../articles/reference.html">Every function, and when you want it</a></li>
     <li><a class="dropdown-item" href="../articles/stability.html">How stable is a variable importance ranking?</a></li>
+    <li><a class="dropdown-item" href="../articles/theory.html">The theory the package rests on</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -78,15 +80,14 @@ probability.</p>
 
 
 <p>It is conservative in the middle and honest at the ends. Measured on 300
-panels of eight predictors with close effects and eighty rows, pooled over
-<code>k = 1..6</code> and binned by the reported probability
+panels of eight predictors with close effects and eighty rows, pooled over <code>k = 1..6</code> and binned by the reported probability
 (<code>inst/simulations/select-calibration.R</code>):</p><table class="table table"><tr><td>reported</td><td>actually in the top k</td></tr><tr><td>0.15</td><td>0.18</td></tr><tr><td>0.35</td><td>0.41</td></tr><tr><td>0.44</td><td>0.56</td></tr><tr><td>0.55</td><td>0.64</td></tr><tr><td>0.75</td><td>0.83</td></tr><tr><td>0.98</td><td>0.98</td></tr></table><p>A variable given 0.44 is in the top <code>k</code> about 56% of the time, so the number
 understates by up to twelve points where it is least decisive, and is
-accurate where it is near 0 or near 1. The direction is the one to want — the
-function does not claim more than it can show — and it has the same cause as
-the wide intervals: a replicate sees about 0.632<code>n</code> distinct rows, ranks the
-variables worse than the full sample does, and drops some of them out of the
-top <code>k</code> more often than the sampling distribution would.</p>
+accurate where it is near 0 or near 1. The direction is the one to want,
+since the function never claims more than it can show, and the cause is the
+one behind the wide intervals: a replicate sees about 0.632<code>n</code> distinct rows,
+ranks the variables worse than the full sample does, and drops some of them
+out of the top <code>k</code> more often than the sampling distribution would.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

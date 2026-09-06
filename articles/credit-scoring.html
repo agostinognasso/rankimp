@@ -37,7 +37,9 @@
     <li><a class="dropdown-item" href="../articles/credit-scoring.html">Robustly important variables in credit scoring</a></li>
     <li><a class="dropdown-item" href="../articles/method-disagreement.html">When XAI methods disagree</a></li>
     <li><a class="dropdown-item" href="../articles/rankimp-intro.html">Consensus ranking of variable importance</a></li>
+    <li><a class="dropdown-item" href="../articles/reference.html">Every function, and when you want it</a></li>
     <li><a class="dropdown-item" href="../articles/stability.html">How stable is a variable importance ranking?</a></li>
+    <li><a class="dropdown-item" href="../articles/theory.html">The theory the package rests on</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -75,8 +77,9 @@ importance ranked income first” does not survive the obvious follow-up:
 <em>would a different method, or a different seed, or a different fold,
 have said the same?</em></p>
 <p>This vignette answers that question end to end, using judges drawn
-along all four axes at once — method, seed, fold and model family — and
-it ends up refusing to answer part of it, which is the point.</p>
+along all four axes at once, which are method, seed, fold and model
+family, and it ends up refusing to answer part of it, which is the
+point.</p>
 <div class="section level2">
 <h2 id="the-portfolio">The portfolio<a class="anchor" aria-label="anchor" href="#the-portfolio"></a>
 </h2>
@@ -293,7 +296,7 @@ estimator.</p>
 </h2>
 <p>Every judge here is a tree ensemble. Averaging over methods, seeds,
 folds and two forest implementations measures how much the answer
-depends on those choices — and nothing else. A bias that all 24 judges
+depends on those choices, and nothing else. A bias that all 24 judges
 share, because they are all built from trees, passes through the
 consensus untouched and comes out looking like agreement.</p>
 <p>The split above is the reason to believe that is not an abstract

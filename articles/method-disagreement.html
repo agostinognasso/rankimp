@@ -37,7 +37,9 @@
     <li><a class="dropdown-item" href="../articles/credit-scoring.html">Robustly important variables in credit scoring</a></li>
     <li><a class="dropdown-item" href="../articles/method-disagreement.html">When XAI methods disagree</a></li>
     <li><a class="dropdown-item" href="../articles/rankimp-intro.html">Consensus ranking of variable importance</a></li>
+    <li><a class="dropdown-item" href="../articles/reference.html">Every function, and when you want it</a></li>
     <li><a class="dropdown-item" href="../articles/stability.html">How stable is a variable importance ranking?</a></li>
+    <li><a class="dropdown-item" href="../articles/theory.html">The theory the package rests on</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -159,7 +161,7 @@ of each other. LOCO puts <code>x3</code> roughly six times above
 produce, and it is large.</p>
 <p>It is also exactly what the two methods are for. Permuting
 <code>x1</code> in a fitted forest barely hurts, because the forest
-still has <code>x2</code> and reroutes through it — so a
+still has <code>x2</code> and reroutes through it, so a
 <em>marginal</em> measure applied to a <em>fitted</em> model already
 discounts a replaceable predictor. Dropping <code>x1</code> and
 refitting discounts it much harder, because now the comparison is
@@ -267,9 +269,9 @@ per cell:</p>
 <p><strong>Panel size is what buys the finding.</strong> At a
 correlation of 0.9, two methods by three seeds divides one time in four;
 two methods by eight seeds divides four times in five. Six judges is
-very little to establish a grouping from — six points in a discrete
-space fall into <em>some</em> arrangement, and the reference panels are
-strict about it for good reason. If the question matters, add seeds.</p>
+very little to establish a grouping from: six points in a discrete space
+fall into <em>some</em> arrangement, and the reference panels are strict
+about it for good reason. If the question matters, add seeds.</p>
 <p>Those rates are over fresh datasets, though, not over more judges on
 one dataset, and the two are not the same thing. The dataset above is a
 stubborn one: run it with eight seeds instead of three and the
@@ -278,7 +280,7 @@ two methods really do produce the same ordering. More judges buy power
 against a seam that is there. They cannot find one that is not.</p>
 <p>The division it does find is trustworthy. At six judges all 27
 divisions across both correlations fell exactly on the method families,
-with no arbitrary seams. At sixteen, 69 of 82 did — and a homogeneous
+with no arbitrary seams. At sixteen, 69 of 82 did, and a homogeneous
 panel of sixteen is divided anyway 8% of the time, which is roughly the
 shortfall.</p>
 <p>The mean <code>tau</code> over those same runs is 0.74 at a
@@ -290,7 +292,7 @@ seam that is there.</p>
 <h2 id="what-a-rank-based-diagnostic-can-and-cannot-see">What a rank-based diagnostic can and cannot see<a class="anchor" aria-label="anchor" href="#what-a-rank-based-diagnostic-can-and-cannot-see"></a>
 </h2>
 <p><code><a href="../reference/judge_clusters.html">judge_clusters()</a></code> works on rankings, because rankings are
-what make different importance measures comparable at all — scores from
+what make different importance measures comparable at all. Scores from
 permutation and scores from LOCO are not on one scale, and nothing can
 put them there. The price is fixed and worth stating plainly: <strong>a
 disagreement that lives entirely in the magnitudes is invisible to
@@ -299,7 +301,7 @@ it.</strong> Here that was a factor of six.</p>
 <code>het$centres</code> holds each group’s consensus, and the honest
 report is two rankings with an explanation rather than one ranking with
 a caveat. If it does not divide, that is a real finding about the
-ordering — and the scores, kept on the panel as
+ordering, and the scores, kept on the panel as
 <code>attr(J, "scores")</code>, are where a disagreement about magnitude
 will still be sitting.</p>
 </div>

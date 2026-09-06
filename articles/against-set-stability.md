@@ -4,8 +4,8 @@ The nearest neighbour of this package on CRAN is
 [`stabm`](https://cran.r-project.org/package=stabm), which measures the
 stability of feature *selection*: given the sets of features chosen
 across resamples, how much do those sets overlap? It implements
-twenty-odd indices — Nogueira, Jaccard, Kuncheva, Somol — and it does
-that job well.
+twenty-odd indices, Nogueira and Jaccard and Kuncheva and Somol among
+them, and it does that job well.
 
 It answers a different question from this one, and the difference is not
 academic. A panel can agree perfectly on *which* variables matter and
@@ -138,8 +138,8 @@ The three variables clear the bar in both panels, because
 [`rank_select()`](../reference/rank_select.md) asks about set
 membership, which is the stable thing. Use `stabm` when the selected set
 is the deliverable. Use this package when the *ordering* is the
-deliverable — when someone will read “income is the most important
-driver of default” off the top of a plot and act on it.
+deliverable, which is the case whenever someone will read “income is the
+most important driver of default” off the top of a plot and act on it.
 
 ## The honest summary
 
@@ -148,7 +148,7 @@ driver of default” off the top of a plot and act on it.
 | Do resamples select the same features? | `stabm` |
 | Do they select them in the same order? | [`consensus_rank()`](../reference/consensus_rank.md), [`item_consensus()`](../reference/item_consensus.md) |
 | Which orderings does the evidence support? | [`rank_confsets()`](../reference/rank_confsets.md), [`prob_topk()`](../reference/prob_topk.md) |
-| Which variables am I sure belong in the top k? | [`rank_select()`](../reference/rank_select.md) — and `stabm` agrees |
+| Which variables am I sure belong in the top k? | [`rank_select()`](../reference/rank_select.md), and `stabm` agrees |
 
 The overlap is real and worth stating in any paper that cites both. The
 gap is that a variable importance *ranking* is the object almost every

@@ -37,7 +37,9 @@
     <li><a class="dropdown-item" href="../articles/credit-scoring.html">Robustly important variables in credit scoring</a></li>
     <li><a class="dropdown-item" href="../articles/method-disagreement.html">When XAI methods disagree</a></li>
     <li><a class="dropdown-item" href="../articles/rankimp-intro.html">Consensus ranking of variable importance</a></li>
+    <li><a class="dropdown-item" href="../articles/reference.html">Every function, and when you want it</a></li>
     <li><a class="dropdown-item" href="../articles/stability.html">How stable is a variable importance ranking?</a></li>
+    <li><a class="dropdown-item" href="../articles/theory.html">The theory the package rests on</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -81,11 +83,11 @@ the sample is too small to support the claim, not that the model is
 unstable.</p>
 <p><code><a href="../reference/rank_confsets.html">rank_confsets()</a></code> reaches both, and says which one it is
 measuring. <code>type = "judges"</code> resamples the panel you already
-have: whatever variability you built into it — seeds, folds, methods —
-is what the intervals reflect. <code>type = "data"</code> goes back to
-the data instead, drawing the rows with replacement and rebuilding the
-panel from scratch on every draw. The first is nearly free; the second
-costs a refit of every model per replicate.</p>
+have: whatever variability you built into it, whether seeds, folds or
+methods, is what the intervals reflect. <code>type = "data"</code> goes
+back to the data instead, drawing the rows with replacement and
+rebuilding the panel from scratch on every draw. The first is nearly
+free; the second costs a refit of every model per replicate.</p>
 <div class="section level2">
 <h2 id="a-panel-that-does-not-quite-agree">A panel that does not quite agree<a class="anchor" aria-label="anchor" href="#a-panel-that-does-not-quite-agree"></a>
 </h2>
@@ -159,7 +161,7 @@ outlier.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> tenure       5     4     5</span></span></code></pre></div>
 <p>Each variable sits at its consensus rank, with the interval of ranks
 it plausibly occupies when the panel is resampled. Overlapping intervals
-mean the two variables cannot be ordered on this evidence — the
+mean the two variables cannot be ordered on this evidence, which is the
 statement most importance plots decline to make.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">cb</span><span class="op">)</span></span></code></pre></div>
@@ -201,8 +203,8 @@ it answers “which variables am I sure about”, and
 models have to be refitted, and <code>type = "data"</code> does exactly
 that: each replicate draws the rows with replacement, refits every
 model, recomputes every judge and takes the consensus again. It needs a
-panel built by <code><a href="../reference/importance_judges.html">importance_judges()</a></code>, which keeps the recipe
-— the fits, the data, the settings — so that none of it has to be handed
+panel built by <code><a href="../reference/importance_judges.html">importance_judges()</a></code>, which keeps the recipe:
+the fits, the data, the settings, so that none of it has to be handed
 over twice.</p>
 <p>The two questions can disagree, and thin data is where they do. Eight
 predictors, five of them real with deliberately close effects, three
@@ -241,7 +243,7 @@ pure noise, and eighty rows:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> x6           5</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> x8           7</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> x7           8</span></span></code></pre></div>
-<p>Six judges — two methods on three refits — and a consensus that reads
+<p>Six judges, two methods on three refits, and a consensus that reads
 like a clean ordering. Now put an interval around it twice:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
@@ -273,10 +275,10 @@ rows drawn with replacement hold about fifty distinct ones, and a
 weak-but-real predictor is harder to place on that much less
 information, so its bootstrap ranks drift towards worse positions. Give
 a replicate all eighty distinct rows instead and it returns the point
-estimate exactly — which is how bootstrap bias is told apart from a
-panel rebuilt wrongly.</p>
-<p>Then ask each the same question — which variables would you certify
-in the top three? — and compare the answers:</p>
+estimate exactly, which is how bootstrap bias is told apart from a panel
+rebuilt wrongly.</p>
+<p>Then ask each the same question, which variables would you certify in
+the top three, and compare the answers:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rank_select.html">rank_select</a></span><span class="op">(</span><span class="va">by_judges</span>, threshold <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "x1" "x2"</span></span>
@@ -293,7 +295,7 @@ judges is rebuilt with <code>models × methods</code> of them and each
 replicate votes with fewer judges than the point estimate did. And
 refits preserve the number of trees and <code>mtry</code> and nothing
 else, so a forest with a hand-tuned <code>nodesize</code> comes back at
-the engine’s default — true of the <code>seeds</code> and
+the engine’s default. That is true of the <code>seeds</code> and
 <code>resamples</code> axes too.</p>
 </div>
 <div class="section level2">
@@ -318,7 +320,7 @@ cleanly.</li>
 on those close cells, and 0.801 and 0.929 on the separated ones.</p>
 <p>So the data bootstrap covers, at or above its nominal level
 everywhere it was measured, and the judge bootstrap covers nowhere. That
-gap — 0.966 against 0.582 in the hardest cell — is the reason
+gap, 0.966 against 0.582 in the hardest cell, is the reason
 <code>type = "data"</code> exists.</p>
 <p>It is worth being clear about <em>how</em> the data bootstrap covers,
 because it is not by being sharp. On the hardest cell its interval spans
@@ -327,11 +329,11 @@ because it is not by being sharp. On the hardest cell its interval spans
 the true order of the five signal variables in 5% of replicates, so an
 interval that admitted less would be claiming more than the data holds.
 Width here is information, not failure.</p>
-<p>The judge bootstrap is narrow on the same cell — 2.0 ranks — and
-misses the true rank two times in five. Resampling a panel measures how
-much the methods disagree with each other, which is not how far the
-ranking would move on another sample. It answers a different question
-cheaply, and <code><a href="../reference/judge_clusters.html">judge_clusters()</a></code> is the right tool for that
+<p>The judge bootstrap is narrow on the same cell, 2.0 ranks, and misses
+the true rank two times in five. Resampling a panel measures how much
+the methods disagree with each other, which is not how far the ranking
+would move on another sample. It answers a different question cheaply,
+and <code><a href="../reference/judge_clusters.html">judge_clusters()</a></code> is the right tool for that
 question.</p>
 <p>Read a rank confidence set as a statement about what the evidence
 rules out. The rank is a discrete, non-smooth functional, and a

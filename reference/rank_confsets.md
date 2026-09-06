@@ -78,23 +78,23 @@ Two questions, two answers, and they are not the same question.
 
 `type = "judges"` draws the judges with replacement from `cr$judges`. It
 measures how much the consensus depends on *which sources of importance
-happened to be in the panel* — a panel of ten permutation replicates and
-one SHAP judge will show it. Resampling is done by drawing multinomial
-counts and passing them as judge weights rather than by materialising
-the resampled panel. The two are equivalent — `ConsRank` treats a weight
-of 3 exactly as three copies of the judge — and the weighted form avoids
-rebuilding a `K x p` matrix per replicate. Judge weights supplied to
-[`consensus_rank()`](consensus_rank.md) are carried through by
-multiplying them into the bootstrap counts.
+happened to be in the panel*, which a panel of ten permutation
+replicates and one SHAP judge will show. Resampling is done by drawing
+multinomial counts and passing them as judge weights rather than by
+materialising the resampled panel. The two are equivalent, since
+`ConsRank` treats a weight of 3 exactly as three copies of the judge,
+and the weighted form avoids rebuilding a `K x p` matrix per replicate.
+Judge weights supplied to [`consensus_rank()`](consensus_rank.md) are
+carried through by multiplying them into the bootstrap counts.
 
 `type = "data"` draws the *rows* with replacement, refits every model on
 the resampled data and rebuilds the whole panel from scratch, once per
 replicate. It measures how much the consensus depends on the sample the
-models were fitted to — the question a reader asks when they wonder
-whether the ranking would survive another dataset. It needs a panel
-built by [`importance_judges()`](importance_judges.md), whose recipe
-carries the fits, the data and the settings; a plain ranking matrix has
-no models to refit.
+models were fitted to, which is the question a reader asks when they
+wonder whether the ranking would survive another dataset. It needs a
+panel built by [`importance_judges()`](importance_judges.md), whose
+recipe carries the fits, the data and the settings; a plain ranking
+matrix has no models to refit.
 
 ## How a data replicate is built
 
@@ -128,7 +128,7 @@ effects and eighty rows (`inst/simulations/select-calibration.R`), the
 median bootstrap rank of the second variable of the consensus sits 0.55
 ranks below it and is worse than it in 51% of panels; the eighth sits
 1.00 above. Hand a replicate all the distinct rows instead and it
-returns the point estimate exactly — which is how this was told apart
+returns the point estimate exactly, which is how this was told apart
 from a panel rebuilt wrongly.
 
 The drift is not large enough to push the consensus rank out of its own
@@ -154,22 +154,22 @@ simulation is `inst/simulations/rank-coverage.R`: eight predictors, five
 of them real, 300 replicates per cell, nominal 0.95, coverage of the
 true rank of the signal variables.
 
-- `type = "data"` — 0.966, 0.969 and 0.978 at `n` of 80, 200 and 500
-  with effects close enough that the middle of the ranking is barely
+- `type = "data"`: 0.966, 0.969 and 0.978 at `n` of 80, 200 and 500 with
+  effects close enough that the middle of the ranking is barely
   identifiable; 0.993 and 0.998 at `n` of 80 and 200 with effects that
   separate cleanly.
 
-- `type = "judges"` — 0.582, 0.655 and 0.711 on those same close cells;
+- `type = "judges"`: 0.582, 0.655 and 0.711 on those same close cells;
   0.801 and 0.929 on the separated ones.
 
 The data bootstrap covers, and it covers by being wide. On the hardest
-cell its interval spans 5.1 of the 8 available ranks — it reports that
+cell its interval spans 5.1 of the 8 available ranks. It reports that
 this sample does not order these variables, which is the truth: the
 point estimate recovers the true order of the five signal variables in
 5% of replicates there. An interval that admitted less would be claiming
 more than the data holds.
 
-The judge bootstrap is narrow on the same cell — 2.0 ranks — and misses
+The judge bootstrap is narrow on the same cell, 2.0 ranks, and misses
 the true rank two times in five. Resampling a panel measures how much
 the methods disagree with each other, and that is not how far the
 ranking would move on another sample. It is the cheap answer to a
@@ -178,7 +178,7 @@ exists: 0.966 against 0.582 where the ordering is hardest.
 
 Fifty replicates are enough for the data bootstrap. The same cell at
 `n_boot = 200` covers 0.970 against 0.966, a difference inside the Monte
-Carlo error of either — which is worth stating because it was not always
+Carlo error of either. That is worth stating because it was not always
 true of this package: a defect that made the bootstrap repeat its
 resamples once made `n_boot` look decisive (see `NEWS.md`).
 
@@ -192,8 +192,8 @@ promised in general.
 
 Every replicate solves a Kemeny problem, which is NP-hard.
 Branch-and-bound is fast on panels that agree and pathological on panels
-that do not: with twelve variables and many ties — the normal case for
-importance scores, where unimportant variables all tie near zero — a
+that do not: with twelve variables and many ties, the normal case for
+importance scores where unimportant variables all tie near zero, a
 single exact solve has been measured at over four minutes, which is a
 day and a half for five hundred replicates.
 

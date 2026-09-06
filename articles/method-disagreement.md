@@ -98,11 +98,11 @@ correlation was built to produce, and it is large.
 
 It is also exactly what the two methods are for. Permuting `x1` in a
 fitted forest barely hurts, because the forest still has `x2` and
-reroutes through it — so a *marginal* measure applied to a *fitted*
-model already discounts a replaceable predictor. Dropping `x1` and
-refitting discounts it much harder, because now the comparison is
-between two models rather than two inputs to one. Both demote the
-correlated pair; they disagree about how far.
+reroutes through it, so a *marginal* measure applied to a *fitted* model
+already discounts a replaceable predictor. Dropping `x1` and refitting
+discounts it much harder, because now the comparison is between two
+models rather than two inputs to one. Both demote the correlated pair;
+they disagree about how far.
 
 ## But the rankings agree
 
@@ -189,7 +189,7 @@ cell:
 **Panel size is what buys the finding.** At a correlation of 0.9, two
 methods by three seeds divides one time in four; two methods by eight
 seeds divides four times in five. Six judges is very little to establish
-a grouping from — six points in a discrete space fall into *some*
+a grouping from: six points in a discrete space fall into *some*
 arrangement, and the reference panels are strict about it for good
 reason. If the question matters, add seeds.
 
@@ -202,7 +202,7 @@ against a seam that is there. They cannot find one that is not.
 
 The division it does find is trustworthy. At six judges all 27 divisions
 across both correlations fell exactly on the method families, with no
-arbitrary seams. At sixteen, 69 of 82 did — and a homogeneous panel of
+arbitrary seams. At sixteen, 69 of 82 did, and a homogeneous panel of
 sixteen is divided anyway 8% of the time, which is roughly the
 shortfall.
 
@@ -214,7 +214,7 @@ what more judges buy is the power to see the seam that is there.
 
 [`judge_clusters()`](../reference/judge_clusters.md) works on rankings,
 because rankings are what make different importance measures comparable
-at all — scores from permutation and scores from LOCO are not on one
+at all. Scores from permutation and scores from LOCO are not on one
 scale, and nothing can put them there. The price is fixed and worth
 stating plainly: **a disagreement that lives entirely in the magnitudes
 is invisible to it.** Here that was a factor of six.
@@ -222,6 +222,6 @@ is invisible to it.** Here that was a factor of six.
 So use it for what it answers. If the panel divides, `het$centres` holds
 each group’s consensus, and the honest report is two rankings with an
 explanation rather than one ranking with a caveat. If it does not
-divide, that is a real finding about the ordering — and the scores, kept
+divide, that is a real finding about the ordering, and the scores, kept
 on the panel as `attr(J, "scores")`, are where a disagreement about
 magnitude will still be sitting.

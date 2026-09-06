@@ -16,11 +16,11 @@ unstable.
 
 [`rank_confsets()`](../reference/rank_confsets.md) reaches both, and
 says which one it is measuring. `type = "judges"` resamples the panel
-you already have: whatever variability you built into it — seeds, folds,
-methods — is what the intervals reflect. `type = "data"` goes back to
-the data instead, drawing the rows with replacement and rebuilding the
-panel from scratch on every draw. The first is nearly free; the second
-costs a refit of every model per replicate.
+you already have: whatever variability you built into it, whether seeds,
+folds or methods, is what the intervals reflect. `type = "data"` goes
+back to the data instead, drawing the rows with replacement and
+rebuilding the panel from scratch on every draw. The first is nearly
+free; the second costs a refit of every model per replicate.
 
 ## A panel that does not quite agree
 
@@ -103,7 +103,7 @@ cb
 
 Each variable sits at its consensus rank, with the interval of ranks it
 plausibly occupies when the panel is resampled. Overlapping intervals
-mean the two variables cannot be ordered on this evidence — the
+mean the two variables cannot be ordered on this evidence, which is the
 statement most importance plots decline to make.
 
 ``` r
@@ -154,7 +154,7 @@ models have to be refitted, and `type = "data"` does exactly that: each
 replicate draws the rows with replacement, refits every model,
 recomputes every judge and takes the consensus again. It needs a panel
 built by [`importance_judges()`](../reference/importance_judges.md),
-which keeps the recipe — the fits, the data, the settings — so that none
+which keeps the recipe: the fits, the data, the settings, so that none
 of it has to be handed over twice.
 
 The two questions can disagree, and thin data is where they do. Eight
@@ -198,8 +198,8 @@ cr_sim
 #> 8 x7           8
 ```
 
-Six judges — two methods on three refits — and a consensus that reads
-like a clean ordering. Now put an interval around it twice:
+Six judges, two methods on three refits, and a consensus that reads like
+a clean ordering. Now put an interval around it twice:
 
 ``` r
 
@@ -234,11 +234,11 @@ rows drawn with replacement hold about fifty distinct ones, and a
 weak-but-real predictor is harder to place on that much less
 information, so its bootstrap ranks drift towards worse positions. Give
 a replicate all eighty distinct rows instead and it returns the point
-estimate exactly — which is how bootstrap bias is told apart from a
-panel rebuilt wrongly.
+estimate exactly, which is how bootstrap bias is told apart from a panel
+rebuilt wrongly.
 
-Then ask each the same question — which variables would you certify in
-the top three? — and compare the answers:
+Then ask each the same question, which variables would you certify in
+the top three, and compare the answers:
 
 ``` r
 
@@ -259,8 +259,8 @@ panel of `models × methods × V` judges is rebuilt with
 `models × methods` of them and each replicate votes with fewer judges
 than the point estimate did. And refits preserve the number of trees and
 `mtry` and nothing else, so a forest with a hand-tuned `nodesize` comes
-back at the engine’s default — true of the `seeds` and `resamples` axes
-too.
+back at the engine’s default. That is true of the `seeds` and
+`resamples` axes too.
 
 ## How much is a 95% set worth?
 
@@ -280,9 +280,8 @@ Resampling the **judges** covered 0.582, 0.655 and 0.711 on those close
 cells, and 0.801 and 0.929 on the separated ones.
 
 So the data bootstrap covers, at or above its nominal level everywhere
-it was measured, and the judge bootstrap covers nowhere. That gap —
-0.966 against 0.582 in the hardest cell — is the reason `type = "data"`
-exists.
+it was measured, and the judge bootstrap covers nowhere. That gap, 0.966
+against 0.582 in the hardest cell, is the reason `type = "data"` exists.
 
 It is worth being clear about *how* the data bootstrap covers, because
 it is not by being sharp. On the hardest cell its interval spans 5.1 of
@@ -292,7 +291,7 @@ five signal variables in 5% of replicates, so an interval that admitted
 less would be claiming more than the data holds. Width here is
 information, not failure.
 
-The judge bootstrap is narrow on the same cell — 2.0 ranks — and misses
+The judge bootstrap is narrow on the same cell, 2.0 ranks, and misses
 the true rank two times in five. Resampling a panel measures how much
 the methods disagree with each other, which is not how far the ranking
 would move on another sample. It answers a different question cheaply,

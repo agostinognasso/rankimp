@@ -5,8 +5,8 @@ Builds the ranking matrix consumed by
 axes along which a variable importance ranking can vary: the *method*
 used, the *model* it interrogates, the *seed* of the ensemble, and the
 *resample* of the data. Every combination of the active axes becomes one
-judge — one row of the panel — whose importance scores are computed by
-the matching backend and turned into a ranking with
+judge, one row of the panel, whose importance scores are computed by the
+matching backend and turned into a ranking with
 [`importance_to_rank()`](importance_to_rank.md).
 
 ## Usage
@@ -94,7 +94,7 @@ with the judge's model, engine, method, seed and resample), the raw
 - **Methods** (`methods`): each importance method is one voice; see
   [importance_backends](importance_backends.md).
 
-- **Models** (`fit_list`): several fitted models — a cross-model
+- **Models** (`fit_list`): several fitted models, so that a cross-model
   consensus asks which variables matter regardless of the learner. All
   models must be trained on the same predictors.
 
@@ -107,8 +107,8 @@ with the judge's model, engine, method, seed and resample), the raw
   (v-fold CV or bootstrap). Every split refits the models on its
   analysis set; permutation and SHAP importance are then computed on the
   assessment set, and LOCO refits on the analysis set and evaluates on
-  the assessment set — the out-of-sample versions of those importances.
-  MDI, which has no data argument, is read off the refit.
+  the assessment set, giving the out-of-sample versions of those
+  importances. MDI, which has no data argument, is read off the refit.
 
 Without `seeds` or `resamples` the supplied fits are used as they are,
 and data-dependent importances are in-sample. Axes combine as a full
@@ -116,9 +116,9 @@ grid: models × methods × seeds × resamples.
 
 ## The recipe
 
-The panel keeps the arguments that built it — the fits, the data, the
-target, the methods, the axes and the backend settings — so that
-[`rank_confsets()`](rank_confsets.md) can rebuild it on a bootstrap
+The panel keeps the arguments that built it: the fits, the data, the
+target, the methods, the axes and the backend settings. That is what
+lets [`rank_confsets()`](rank_confsets.md) rebuild it on a bootstrap
 sample of the rows without being handed them all again. That makes the
 panel as large as the objects it refers to.
 

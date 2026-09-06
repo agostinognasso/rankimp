@@ -7,8 +7,8 @@ importance ranked income first” does not survive the obvious follow-up:
 have said the same?*
 
 This vignette answers that question end to end, using judges drawn along
-all four axes at once — method, seed, fold and model family — and it
-ends up refusing to answer part of it, which is the point.
+all four axes at once, which are method, seed, fold and model family,
+and it ends up refusing to answer part of it, which is the point.
 
 ## The portfolio
 
@@ -251,7 +251,7 @@ estimator.
 
 Every judge here is a tree ensemble. Averaging over methods, seeds,
 folds and two forest implementations measures how much the answer
-depends on those choices — and nothing else. A bias that all 24 judges
+depends on those choices, and nothing else. A bias that all 24 judges
 share, because they are all built from trees, passes through the
 consensus untouched and comes out looking like agreement.
 

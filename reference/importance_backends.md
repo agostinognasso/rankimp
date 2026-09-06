@@ -67,7 +67,7 @@ A named numeric vector of importance scores, one per predictor.
 Permutation, MDI and LOCO are implemented natively against the supported
 engines (randomForest, ranger); SHAP delegates to the kernelshap
 package. Scores are computed on the data supplied, so permutation and
-LOCO are in-sample unless `data` is a holdout set —
+LOCO are in-sample unless `data` is a holdout set.
 [`importance_judges()`](importance_judges.md) with a `resamples` axis is
 the out-of-sample version.
 

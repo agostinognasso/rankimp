@@ -78,7 +78,7 @@ and says so.
 
 Hand-building the score matrix is fine for a demonstration and tedious
 in practice. [`importance_judges()`](../reference/importance_judges.md)
-builds it from fitted models directly — here two methods interrogating
+builds it from fitted models directly, here two methods interrogating
 one forest, the smallest panel worth having:
 
 ``` r
@@ -167,8 +167,8 @@ consensus_rank(judges, weights = c(1, 1, 1, 0.5))$ranking
 ```
 
 [`judge_weights()`](../reference/judge_weights.md) builds these vectors
-from a panel — one weight per method, or weights proportional to each
-judge’s agreement with the rest — and a panel built by
+from a panel, either one weight per method or weights proportional to
+each judge’s agreement with the rest, and a panel built by
 `importance_judges(..., weights = )` carries them into
 [`consensus_rank()`](../reference/consensus_rank.md) on its own.
 

@@ -3,7 +3,7 @@
 When the global agreement with the consensus is low, reporting the
 consensus alone hides the disagreement instead of describing it.
 Clustering the judges in the space of the Kemeny-Snell distance recovers
-the sub-populations of methods that see the model differently — marginal
+the sub-populations of methods that see the model differently. Marginal
 against conditional importance measures typically separate here whenever
 the predictors are correlated, and that separation is itself the
 finding.
@@ -84,7 +84,7 @@ assignment as a named integer vector), `k`, `centres` (the group
 consensus rankings, one per row), `consensus` (the `consensus_rank`
 object behind each centre), `distances` (the Kemeny-Snell distances
 between judges), `criterion` (the silhouette at every `k` the search
-could have used, reported so the shape of the panel can be inspected —
+could have used, reported so the shape of the panel can be inspected;
 the automatic choice is the test's, not this column's maximum), `test`
 (the observed statistic, its p-value against one population, and the
 spread the reference panels were given), and the settings used.
@@ -95,8 +95,8 @@ The groups are k-medians in ranking space: each group's centre is the
 Kemeny median of its members, computed by
 [`consensus_rank()`](consensus_rank.md), and each judge belongs to the
 group whose centre it is closest to. The centre of a group is therefore
-a consensus ranking — the object worth reporting — rather than a point
-in some embedding.
+a consensus ranking, the object worth reporting, rather than a point in
+some embedding.
 
 ## Why this returns the same answer twice
 
@@ -104,8 +104,8 @@ Nothing here draws from the RNG. The starting partition is the exactly
 optimal set of medoids, found by enumerating every one of them while the
 panel is small enough to allow it, and the refinement is deterministic;
 ties are broken on the lowest index. A panel of judges is small, so the
-usual reason for random restarts — an initialisation too expensive to
-optimise — does not apply, and an inference function that answered
+usual reason for random restarts, an initialisation too expensive to
+optimise, does not apply, and an inference function that answered
 differently on every call would be worth less than the answer it gives.
 
 Above `medoid_limit` candidate sets the enumeration is replaced by a
@@ -121,7 +121,7 @@ because two judges who happen to rank alike sit at distance zero and
 score a silhouette of exactly 1: on eight variables and six judges one
 transposition apart, the silhouette alone split a single population 62%
 of the time. Those same zero distances are what makes a real division
-obvious, so the statistic cannot tell the two cases apart by itself — it
+obvious, so the statistic cannot tell the two cases apart by itself. It
 has to be told what one population looks like.
 
 So the panel's best split in two is compared against the best split in
@@ -139,7 +139,7 @@ from **one population** is divided anyway 2.0% of the time at six judges
 against a nominal `alpha` of 5%. Two well-separated populations are
 recovered exactly 0.877 of the time at six judges, 0.873 at ten and
 0.943 at sixteen; on groups that are close, or judges that are noisy, it
-falls a long way — 0.360 at six judges with the group centres four
+falls a long way: 0.360 at six judges with the group centres four
 transpositions apart, and 0.073 when the judges stray three.
 
 On real panels of permutation against LOCO judges over correlated
@@ -147,8 +147,8 @@ predictors, 100 datasets per cell, the panel divides in two 23 times in
 100 at a correlation of 0.9 with six judges and 82 times in 100 with
 sixteen. All 23 of the six-judge divisions fell exactly on the method
 families; 69 of the 82 at sixteen judges did. Panel size is what buys
-sensitivity here, and six judges — two methods by three seeds — has
-little of it.
+sensitivity here, and six judges, which is two methods by three seeds,
+has little of it.
 [`vignette("method-disagreement")`](../articles/method-disagreement.md)
 works through one of the panels that does not divide.
 
@@ -166,13 +166,13 @@ silhouette instead attaches an uncalibrated number to a calibrated
 decision, and it measures worse: on two separated groups the partition
 is recovered exactly 0.943 of the time at sixteen judges against 0.690
 for the largest silhouette, at the same false division rate. It is also
-what made larger panels perform worse — recovery fell from 0.877 at six
+what made larger panels perform worse: recovery fell from 0.877 at six
 judges to 0.690 at sixteen, and now rises to 0.943. Pass `k` explicitly
 to fit any other number; a panel that genuinely holds three groups is
 reported as two.
 
 All of it is read off the distances alone, through the exactly optimal
-medoid partitions — which is what makes hundreds of reference panels
+medoid partitions, which is what makes hundreds of reference panels
 affordable. Which judge goes where, and what each group ranks, is the
 k-medians refinement of that partition.
 

@@ -24,7 +24,9 @@ threshold, that is, whose upper (worst) end is no worse than threshold."></head>
     <li><a class="dropdown-item" href="../articles/credit-scoring.html">Robustly important variables in credit scoring</a></li>
     <li><a class="dropdown-item" href="../articles/method-disagreement.html">When XAI methods disagree</a></li>
     <li><a class="dropdown-item" href="../articles/rankimp-intro.html">Consensus ranking of variable importance</a></li>
+    <li><a class="dropdown-item" href="../articles/reference.html">Every function, and when you want it</a></li>
     <li><a class="dropdown-item" href="../articles/stability.html">How stable is a variable importance ranking?</a></li>
+    <li><a class="dropdown-item" href="../articles/theory.html">The theory the package rests on</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -87,7 +89,7 @@ still carry signal, and <code><a href="prob_topk.html">prob_topk()</a></code> qu
 <p>Conservative is a claim, so it was measured. On 300 panels of eight
 predictors with close effects and eighty rows
 (<code>inst/simulations/select-calibration.R</code>), against the true ordering of the
-data-generating coefficients:</p><table class="table table"><tr><td>threshold</td><td>selected per panel</td><td>false selections</td><td>panels with one</td><td>of those that deserved it, selected</td></tr><tr><td>1</td><td>1.00</td><td>0.000</td><td>0.000</td><td>1.000</td></tr><tr><td>2</td><td>1.01</td><td>0.000</td><td>0.000</td><td>0.503</td></tr><tr><td>3</td><td>1.07</td><td>0.009</td><td>0.010</td><td>0.352</td></tr><tr><td>4</td><td>1.23</td><td>0.011</td><td>0.013</td><td>0.305</td></tr><tr><td>5</td><td>1.56</td><td>0.002</td><td>0.003</td><td>0.312</td></tr><tr><td>6</td><td>2.22</td><td>0.030</td><td>0.067</td><td>0.431</td></tr></table><p>A selected variable is almost never one that did not deserve it — at most 3%
+data-generating coefficients:</p><table class="table table"><tr><td>threshold</td><td>selected per panel</td><td>false selections</td><td>panels with one</td><td>of those that deserved it, selected</td></tr><tr><td>1</td><td>1.00</td><td>0.000</td><td>0.000</td><td>1.000</td></tr><tr><td>2</td><td>1.01</td><td>0.000</td><td>0.000</td><td>0.503</td></tr><tr><td>3</td><td>1.07</td><td>0.009</td><td>0.010</td><td>0.352</td></tr><tr><td>4</td><td>1.23</td><td>0.011</td><td>0.013</td><td>0.305</td></tr><tr><td>5</td><td>1.56</td><td>0.002</td><td>0.003</td><td>0.312</td></tr><tr><td>6</td><td>2.22</td><td>0.030</td><td>0.067</td><td>0.431</td></tr></table><p>A selected variable is almost never one that did not deserve it: at most 3%
 of selections, and 0% at the thresholds that make the strongest claim. The
 price is on the other side: past a threshold of 1 it selects between a third
 and a half of the variables that did deserve it. Read a short list as "these
