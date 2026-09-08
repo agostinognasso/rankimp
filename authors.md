@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/agostinognasso/rankimp/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/agostinognasso/rankimp/blob/v1.0.0/DESCRIPTION)
 
 Gnasso A (2026). *rankimp: Consensus Ranking of Variable Importance with
 Uncertainty*. R package version 1.0.0,
