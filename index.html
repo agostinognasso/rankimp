@@ -121,6 +121,7 @@
 <span><span class="co">#&gt;   credit_lines            age </span></span>
 <span><span class="co">#&gt;           0.00           0.00</span></span></code></pre></div>
 <p>It is built so that importance measures disagree on it, since a dataset on which they agree would say nothing about a package for reconciling them. <code>bureau_score</code> and <code>income</code> come from one latent creditworthiness and correlate at 0.84; <code>prior_arrears</code> is the largest effect in the data and takes six distinct values, which is the case impurity importance handles badly. On a forest of 500 trees it puts <code>prior_arrears</code> fourth while permutation importance puts it first. See <code><a href="reference/applications.html">?applications</a></code>.</p>
+<p><code><a href="articles/credit-scoring.html">vignette("credit-scoring")</a></code> is the worked example on it, and it is worth reading for the result: the consensus of 24 judges gets the top of the ordering wrong, and the confidence sets are narrow and wrong along with it, because half the panel shares a bias and agreement is not correctness.</p>
 </div>
 <div class="section level2">
 <h2 id="a-worked-example-end-to-end">A worked example, end to end<a class="anchor" aria-label="anchor" href="#a-worked-example-end-to-end"></a>
@@ -129,6 +130,8 @@
 <div class="section level3">
 <h3 id="the-data-and-what-is-true-in-it">The data, and what is true in it<a class="anchor" aria-label="anchor" href="#the-data-and-what-is-true-in-it"></a>
 </h3>
+<p>This example builds its data rather than using <code>applications</code>, and the reason is worth a sentence. The panel below turns on the <em>seed</em> axis: it is meant to show that refitting the same forest under a different seed can move the answer. <code>applications</code> is 800 rows with well-separated effects and it is too stable for that. Built as a panel over seeds it returns two distinct rankings from six judges, one per method, every reliability weight comes back at 1 and every judge scores the same agreement, so three of the sections below would have nothing to show. It disagrees across <em>methods</em>, which is what it was designed for and what the vignette uses it for.</p>
+<p>What this section needs instead is a smaller, noisier problem with variables whose true importance is exactly zero, so that their ordering is pure noise and the panel can be seen refusing to order them.</p>
 <p>Six predictors. Three of them drive the outcome and three are noise, and one of the three that matter is a small count rather than a continuous variable, which is the case impurity importance handles badly.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/agostinognasso/rankimp" class="external-link">rankimp</a></span><span class="op">)</span></span>
@@ -343,7 +346,7 @@
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span></span>
 <span><span class="va">cb</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rank_confsets.html">rank_confsets</a></span><span class="op">(</span><span class="va">cr</span>, type <span class="op">=</span> <span class="st">"data"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Data bootstrap: 50 replicates at about 0.99 s each, roughly 49 seconds.</span></span>
+<span><span class="co">#&gt; Data bootstrap: 50 replicates at about 0.96 s each, roughly 48 seconds.</span></span>
 <span><span class="va">cb</span></span>
 <span><span class="co">#&gt; &lt;rank_confsets&gt;</span></span>
 <span><span class="co">#&gt;   replicates : 50 ( quick )</span></span>
@@ -685,7 +688,7 @@
 <ul class="list-unstyled">
 <li><a href="https://github.com/agostinognasso/rankimp/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/agostinognasso/rankimp/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://github.com/agostinognasso/rankimp/actions/workflows/test-coverage.yaml" class="external-link"><img src="https://github.com/agostinognasso/rankimp/actions/workflows/test-coverage.yaml/badge.svg" alt="test-coverage"></a></li>
-<li><a href="https://github.com/agostinognasso/rankimp/actions/workflows/test-coverage.yaml" class="external-link"><img src="https://img.shields.io/badge/coverage-%E2%89%A590%25-brightgreen" alt="coverage"></a></li>
+<li><a href="https://github.com/agostinognasso/rankimp/actions/workflows/test-coverage.yaml" class="external-link"><img src="https://img.shields.io/badge/coverage-%E2%89%A591%25-brightgreen" alt="coverage"></a></li>
 <li><a href="https://github.com/agostinognasso/rankimp/blob/main/DESCRIPTION" class="external-link"><img src="https://img.shields.io/github/r-package/v/agostinognasso/rankimp?label=version" alt="R package version"></a></li>
 <li><a href="https://cran.r-project.org/" class="external-link"><img src="https://img.shields.io/badge/R-%3E%3D%203.5-blue" alt="R &gt;= 3.5"></a></li>
 <li><a href="https://opensource.org/licenses/MIT" class="external-link"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a></li>

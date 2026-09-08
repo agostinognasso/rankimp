@@ -255,8 +255,8 @@ sample too small for the claim.
 
 Two things to know about how a data replicate is built. A `resamples`
 axis is replaced by the bootstrap’s own in-bag/out-of-bag split, so a
-panel of `models × methods × V` judges is rebuilt with
-`models × methods` of them and each replicate votes with fewer judges
+panel of `models x methods x V` judges is rebuilt with
+`models x methods` of them and each replicate votes with fewer judges
 than the point estimate did. And refits preserve the number of trees and
 `mtry` and nothing else, so a forest with a hand-tuned `nodesize` comes
 back at the engine’s default. That is true of the `seeds` and

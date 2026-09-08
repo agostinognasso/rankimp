@@ -65,7 +65,7 @@
       <h1>How stable is a variable importance ranking?</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/agostinognasso/rankimp/blob/v1.0.0/vignettes/stability.Rmd" class="external-link"><code>vignettes/stability.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/agostinognasso/rankimp/blob/main/vignettes/stability.Rmd" class="external-link"><code>vignettes/stability.Rmd</code></a></small>
       <div class="d-none name"><code>stability.Rmd</code></div>
     </div>
 
@@ -290,8 +290,8 @@ the case the opening paragraphs describe: not an unstable model, a
 sample too small for the claim.</p>
 <p>Two things to know about how a data replicate is built. A
 <code>resamples</code> axis is replaced by the bootstrap’s own
-in-bag/out-of-bag split, so a panel of <code>models × methods × V</code>
-judges is rebuilt with <code>models × methods</code> of them and each
+in-bag/out-of-bag split, so a panel of <code>models x methods x V</code>
+judges is rebuilt with <code>models x methods</code> of them and each
 replicate votes with fewer judges than the point estimate did. And
 refits preserve the number of trees and <code>mtry</code> and nothing
 else, so a forest with a hand-tuned <code>nodesize</code> comes back at
