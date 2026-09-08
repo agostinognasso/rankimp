@@ -12,11 +12,12 @@ rankimp 1.0.0. This is a new submission: the package is not yet on CRAN.
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes
+0 errors | 0 warnings | 0 notes, on all six GitHub Actions cells above.
 
-The one note seen locally is `checking HTML version of manual`, which reports
-that `tidy` is not installed on the checking machine. It is a property of that
-machine rather than of the package.
+Locally the same check reports one note, `checking HTML version of manual`,
+which says that HTML Tidy is not installed on this machine. It is a property of
+the machine rather than of the package, and it does not appear on any of the
+cells above.
 
 ## Not run
 
@@ -26,6 +27,8 @@ would have covered is in the GitHub Actions matrix above instead.
 
 ## Notes for the reviewer
 
+* A spell checker run over the Description flags `Kemeny`. It is correct: the
+  surname in the Kemeny median ranking.
 * `inst/simulations/` ships five scripts that are not run at check time and are
   not needed to use the package. They are the provenance of every quantitative
   claim in the documentation: the coverage, calibration and cluster-recovery
