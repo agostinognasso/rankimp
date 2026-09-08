@@ -427,7 +427,7 @@ needs the recipe to rebuild.
 
 set.seed(7)
 cb <- rank_confsets(cr, type = "data")
-#> Data bootstrap: 50 replicates at about 0.96 s each, roughly 48 seconds.
+#> Data bootstrap: 50 replicates at about 0.95 s each, roughly 48 seconds.
 cb
 #> <rank_confsets>
 #>   replicates : 50 ( quick )
