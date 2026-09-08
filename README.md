@@ -94,86 +94,52 @@ Not on CRAN yet. Install from GitHub:
 pak::pak("agostinognasso/rankimp")
 ```
 
-## The data that ships with it
+## A worked example, end to end
 
-`applications` is 800 synthetic loan applications with the right answer
-attached: every predictor enters the outcome with a known coefficient,
-and the effects a ranking ought to recover are stored on the data frame
-itself.
+The whole package on one problem, on the data the package ships, with
+the truth known in advance so that every answer can be checked against
+it rather than argued over.
+
+### The data, and what is true in it
+
+`applications` is 800 synthetic loan applications. Every predictor
+enters the outcome with a known coefficient on the standardised scale,
+so a coefficient and an effect are the same number, and the ordering a
+ranking ought to recover is stored on the data frame itself.
 
 ``` r
 library(rankimp)
-sort(attr(applications, "effects"), decreasing = TRUE)
+
+truth <- sort(attr(applications, "effects"), decreasing = TRUE)
+truth
 #>  prior_arrears     debt_ratio   bureau_score         income employment_yrs 
 #>           0.90           0.78           0.62           0.45           0.22 
 #>   credit_lines            age 
 #>           0.00           0.00
 ```
 
-It is built so that importance measures disagree on it, since a dataset
-on which they agree would say nothing about a package for reconciling
-them. `bureau_score` and `income` come from one latent creditworthiness
-and correlate at 0.84; `prior_arrears` is the largest effect in the data
-and takes six distinct values, which is the case impurity importance
-handles badly. On a forest of 500 trees it puts `prior_arrears` fourth
-while permutation importance puts it first. See `?applications`.
-
-`vignette("credit-scoring")` is the worked example on it, and it is
-worth reading for the result: the consensus of 24 judges gets the top of
-the ordering wrong, and the confidence sets are narrow and wrong along
-with it, because half the panel shares a bias and agreement is not
-correctness.
-
-## A worked example, end to end
-
-The whole package on one problem, with the truth known in advance so
-that every answer can be checked.
-
-### The data, and what is true in it
-
-This example builds its data rather than using `applications`, and the
-reason is worth a sentence. The panel below turns on the *seed* axis: it
-is meant to show that refitting the same forest under a different seed
-can move the answer. `applications` is 800 rows with well-separated
-effects and it is too stable for that. Built as a panel over seeds it
-returns two distinct rankings from six judges, one per method, every
-reliability weight comes back at 1 and every judge scores the same
-agreement, so three of the sections below would have nothing to show. It
-disagrees across *methods*, which is what it was designed for and what
-the vignette uses it for.
-
-What this section needs instead is a smaller, noisier problem with
-variables whose true importance is exactly zero, so that their ordering
-is pure noise and the panel can be seen refusing to order them.
-
-Six predictors. Three of them drive the outcome and three are noise, and
-one of the three that matter is a small count rather than a continuous
-variable, which is the case impurity importance handles badly.
+Seven predictors. Five drive the outcome and two enter it nowhere, so
+`age` and `credit_lines` have no true ordering at all and anything that
+orders them is reporting noise. Two more features were built in on
+purpose, because a dataset on which every importance measure agrees
+would say nothing about a package for reconciling them. `income` and
+`bureau_score` come from one latent creditworthiness and correlate at
+0.84, so they stand in for each other and the credit for the signal has
+to be divided somehow. `prior_arrears` is the largest effect in the data
+and takes only six distinct values, which is the case mean decrease in
+impurity handles badly. See `?applications`.
 
 ``` r
-library(rankimp)
-
-set.seed(2024)
-n <- 400
-credit <- data.frame(
-  income     = rnorm(n),      # signal
-  debt_ratio = rnorm(n),      # signal
-  late_count = rpois(n, 1),   # signal, and a small count
-  age        = rnorm(n),      # noise
-  balance    = rnorm(n),      # noise
-  tenure     = rnorm(n)       # noise
-)
-credit$risk <- with(credit,
-  1.2 * income - 1.0 * debt_ratio + 0.9 * late_count + rnorm(n)
-)
+library(randomForest)
+#> randomForest 4.7-1.2
+#> Type rfNews() to see new features/changes/bug fixes.
 
 set.seed(1)
-fit <- randomForest::randomForest(risk ~ ., data = credit, ntree = 300)
-```
+fit <- randomForest(default ~ ., data = applications, ntree = 300)
 
-The true ordering of the three signal variables is `income`,
-`debt_ratio`, `late_count`. The other three have no ordering at all,
-because they have no effect.
+set.seed(2)
+folds <- rsample::vfold_cv(applications, v = 3)
+```
 
 ### One ranking, and no error bar
 
@@ -182,23 +148,31 @@ said.
 
 ``` r
 set.seed(1)
-round(importance_permutation(fit, credit, "risk", n_perm = 5), 3)
-#>     income debt_ratio late_count        age    balance     tenure 
-#>      1.153      0.848      0.804      0.173      0.182      0.172
+round(importance_permutation(fit, applications, "default", n_perm = 5), 3)
+#>         income   bureau_score     debt_ratio employment_yrs  prior_arrears 
+#>          0.097          0.075          0.124          0.065          0.130 
+#>   credit_lines            age 
+#>          0.014          0.034
 
 round(importance_mdi(fit), 1)
-#>     income debt_ratio late_count        age    balance     tenure 
-#>      567.9      404.9      282.5      115.4      110.8      116.9
+#>         income   bureau_score     debt_ratio employment_yrs  prior_arrears 
+#>           52.5           46.8           58.3           36.2           39.8 
+#>   credit_lines            age 
+#>           18.9           31.3
 ```
 
-Both are right about the top three and both invent an ordering for the
-bottom three, and nothing in either output says which part is which.
+Read those against `truth`. Permutation gets the ordering almost right,
+missing only by swapping the correlated pair. Impurity puts
+`prior_arrears` **fourth** when it is the largest effect in the data,
+which is the low-cardinality bias doing exactly what it is known to do.
+Both invent an ordering for `age` and `credit_lines`, which have none,
+and nothing in either output says which part of it is which.
 
 ### Why ranks and not scores
 
 The two vectors above are not on a common scale, and no rescaling puts
 them on one, because they answer different questions. A permutation loss
-of 1.15 and an impurity decrease of 568 cannot be averaged.
+of 0.130 and an impurity decrease of 58.3 cannot be averaged.
 
 Ranks are the coarsest thing every method can be made to agree to
 produce. `importance_to_rank()` converts scores to ranks, and gives
@@ -206,13 +180,16 @@ equal scores equal ranks instead of separating them by column order.
 
 ``` r
 scores <- rbind(
-  permutation = { set.seed(1); importance_permutation(fit, credit, "risk", n_perm = 5) },
+  permutation = { set.seed(1); importance_permutation(fit, applications, "default", n_perm = 5) },
   mdi         = importance_mdi(fit)
 )
 importance_to_rank(scores)
-#>             income debt_ratio late_count age balance tenure
-#> permutation      1          2          3   5       4      6
-#> mdi              1          2          3   5       6      4
+#>             income bureau_score debt_ratio employment_yrs prior_arrears
+#> permutation      3            4          2              5             1
+#> mdi              2            3          1              5             4
+#>             credit_lines age
+#> permutation            7   6
+#> mdi                    7   6
 ```
 
 The price of working in ranks is that a disagreement living entirely in
@@ -231,42 +208,56 @@ per judge, plus the provenance and the raw scores.
 ``` r
 J <- importance_judges(
   fit,
-  methods = c("permutation", "mdi"),
-  data    = credit,
-  target  = "risk",
-  seeds   = 1:3,
-  n_perm  = 5
+  methods   = c("permutation", "mdi"),
+  data      = applications,
+  target    = "default",
+  seeds     = 1:2,
+  n_perm    = 5,
+  resamples = folds
 )
 J
-#> <judges> 6 judges x 6 variables
+#> <judges> 12 judges x 7 variables
 #>   models  : model1 
 #>   methods : permutation, mdi 
-#>   seeds   : 1, 2, 3 
+#>   seeds   : 1, 2 
+#>   resamples: Fold1, Fold2, Fold3 
 #>   weights : none (equal) 
 #>   recipe  : kept; rank_confsets(type = "data") can rebuild this panel
 #> 
-#>                       income debt_ratio late_count age balance tenure
-#> model1:permutation:s1      1          2          3   4       5      6
-#> model1:mdi:s1              1          2          3   5       6      4
-#> model1:permutation:s2      1          2          3   4       5      6
-#> model1:mdi:s2              1          2          3   4       6      5
-#> model1:permutation:s3      1          2          3   4       5      6
-#> model1:mdi:s3              1          2          3   4       6      5
+#>                             income bureau_score debt_ratio employment_yrs
+#> model1:permutation:s1:Fold1      3            4          2              5
+#> model1:mdi:s1:Fold1              2            3          1              5
+#> model1:permutation:s1:Fold2      2            4          3              5
+#> model1:mdi:s1:Fold2              2            3          1              5
+#> model1:permutation:s1:Fold3      4            6          2              3
+#> model1:mdi:s1:Fold3              2            3          1              5
+#> model1:permutation:s2:Fold1      4            3          2              6
+#> model1:mdi:s2:Fold1              2            3          1              5
+#> model1:permutation:s2:Fold2      3            5          2              4
+#> model1:mdi:s2:Fold2              2            3          1              5
+#>                             prior_arrears credit_lines age
+#> model1:permutation:s1:Fold1             1            6   7
+#> model1:mdi:s1:Fold1                     4            7   6
+#> model1:permutation:s1:Fold2             1            6   7
+#> model1:mdi:s1:Fold2                     4            7   6
+#> model1:permutation:s1:Fold3             1            7   5
+#> model1:mdi:s1:Fold3                     4            7   6
+#> model1:permutation:s2:Fold1             1            5   6
+#> model1:mdi:s2:Fold1                     4            7   6
+#> model1:permutation:s2:Fold2             1            6   7
+#> model1:mdi:s2:Fold2                     4            7   6
+#> ... and 2 more judges
 ```
 
-Two methods times three seeds is six judges, and each seed costs a
-refit. The three permutation judges agree exactly. The impurity judges
-do not agree with them about the bottom three, and one of them,
-`mdi:s1`, does not even agree about `age`.
-
-The seed-1 judges are worth a second look. Refitting under seed 1
-reproduces the forest fitted above, and `mdi:s1` therefore repeats the
-impurity ranking exactly. `permutation:s1` does not repeat the
-permutation ranking above: it puts `age` fourth where the ad hoc run put
-`balance` there. Permutation importance is itself a random estimator,
-and five shuffles are nowhere near enough to order three variables whose
-true importance is zero. Nothing was misconfigured; that is the size of
-the noise.
+Two methods, two seeds and three folds is twelve judges, and they
+produce seven distinct rankings between them. The split is not even: all
+six impurity judges return the same ranking, and no two permutation
+judges return the same one. Impurity importance is a deterministic
+function of the fitted forest and barely moves across folds; permutation
+importance is itself a random estimator, and five shuffles on this data
+are not enough to pin down the middle of the table. Nothing is
+misconfigured. That is the size of the noise, and a single run of either
+would have hidden it.
 
 Every axis multiplies. `seeds` measures the ensemble's own noise,
 `fit_list` takes several fitted models when you want a consensus that
@@ -278,15 +269,21 @@ Provenance is kept, one row per judge:
 
 ``` r
 attr(J, "provenance")
-#> # A tibble: 6 × 6
-#>   judge                 model  engine       method       seed resample
-#>   <chr>                 <chr>  <chr>        <chr>       <int> <chr>   
-#> 1 model1:permutation:s1 model1 randomForest permutation     1 <NA>    
-#> 2 model1:mdi:s1         model1 randomForest mdi             1 <NA>    
-#> 3 model1:permutation:s2 model1 randomForest permutation     2 <NA>    
-#> 4 model1:mdi:s2         model1 randomForest mdi             2 <NA>    
-#> 5 model1:permutation:s3 model1 randomForest permutation     3 <NA>    
-#> 6 model1:mdi:s3         model1 randomForest mdi             3 <NA>
+#> # A tibble: 12 × 6
+#>    judge                       model  engine       method       seed resample
+#>    <chr>                       <chr>  <chr>        <chr>       <int> <chr>   
+#>  1 model1:permutation:s1:Fold1 model1 randomForest permutation     1 Fold1   
+#>  2 model1:mdi:s1:Fold1         model1 randomForest mdi             1 Fold1   
+#>  3 model1:permutation:s1:Fold2 model1 randomForest permutation     1 Fold2   
+#>  4 model1:mdi:s1:Fold2         model1 randomForest mdi             1 Fold2   
+#>  5 model1:permutation:s1:Fold3 model1 randomForest permutation     1 Fold3   
+#>  6 model1:mdi:s1:Fold3         model1 randomForest mdi             1 Fold3   
+#>  7 model1:permutation:s2:Fold1 model1 randomForest permutation     2 Fold1   
+#>  8 model1:mdi:s2:Fold1         model1 randomForest mdi             2 Fold1   
+#>  9 model1:permutation:s2:Fold2 model1 randomForest permutation     2 Fold2   
+#> 10 model1:mdi:s2:Fold2         model1 randomForest mdi             2 Fold2   
+#> 11 model1:permutation:s2:Fold3 model1 randomForest permutation     2 Fold3   
+#> 12 model1:mdi:s2:Fold3         model1 randomForest mdi             2 Fold3
 ```
 
 ### The consensus
@@ -298,40 +295,58 @@ Kemeny-Snell distance to all the judges.
 cr <- consensus_rank(J)
 cr
 #> <consensus_rank>
-#>   judges    : 6  
-#>   variables : 6 
+#>   judges    : 12  
+#>   variables : 7 
 #>   algorithm : BB (ties allowed) 
-#>   tau_x     : 0.9111 
-#>   note      : 3 equally optimal consensus rankings; combined, so variables they order differently are tied
+#>   tau_x     : 0.7579 
+#>   note      : 7 equally optimal consensus rankings; combined, so variables they order differently are tied
 #> 
-#> # A tibble: 6 × 2
-#>   variable    rank
-#>   <chr>      <int>
-#> 1 income         1
-#> 2 debt_ratio     2
-#> 3 late_count     3
-#> 4 age            4
-#> 5 balance        5
-#> 6 tenure         5
+#> # A tibble: 7 × 2
+#>   variable        rank
+#>   <chr>          <int>
+#> 1 debt_ratio         1
+#> 2 income             2
+#> 3 prior_arrears      2
+#> 4 bureau_score       4
+#> 5 employment_yrs     5
+#> 6 age                6
+#> 7 credit_lines       7
 ```
 
-The panel recovers the true ordering of the three signal variables, and
-it declines to order `balance` against `tenure`. That tie is the point.
-It appears because the Kemeny median here is not unique: three rankings
-attain the same minimum, and they disagree about exactly that pair.
+`income` and `prior_arrears` come back tied at 2. That tie is not a
+rounding artefact, it is the Kemeny median declining to order the pair
+the panel argues about most: seven rankings attain the same minimum, and
+they place `prior_arrears` anywhere from first to fourth.
 
 ``` r
 cr$consensus_all
-#>      income debt_ratio late_count age balance tenure
-#> [1,]      1          2          3   4       5      6
-#> [2,]      1          2          3   4       5      5
-#> [3,]      1          2          3   4       6      5
+#>      income bureau_score debt_ratio employment_yrs prior_arrears credit_lines
+#> [1,]      2            3          1              5             4            7
+#> [2,]      2            3          1              4             3            6
+#> [3,]      2            4          1              5             3            7
+#> [4,]      2            3          1              4             2            6
+#> [5,]      3            4          1              5             2            7
+#> [6,]      2            3          1              4             1            6
+#> [7,]      3            4          2              5             1            7
+#>      age
+#> [1,]   6
+#> [2,]   5
+#> [3,]   6
+#> [4,]   5
+#> [5,]   6
+#> [6,]   5
+#> [7,]   6
 ```
 
-Reporting the first of those three would not be neutral, because which
+Reporting the first of those seven would not be neutral, because which
 one comes first depends on the order of your columns. The package
 averages each variable's position over the whole optimal set and
 re-ranks with ties, and keeps the full set available.
+
+Against `truth` the consensus is wrong at the top, and worth being
+precise about: `prior_arrears` is the largest effect in the data and the
+consensus cannot separate it from `income`, which is fourth. It gets the
+rest right, including both variables that do nothing.
 
 `tau_x` is the mean Emond-Mason agreement between the consensus and the
 judges. Read it as how much agreement there was to summarise. It is not
@@ -339,6 +354,11 @@ a p-value and not a goodness of fit.
 
 ``` r
 library(ggplot2)
+#> 
+#> Caricamento pacchetto: 'ggplot2'
+#> Il seguente oggetto è mascherato da 'package:randomForest':
+#> 
+#>     margin
 autoplot(cr)
 ```
 
@@ -346,8 +366,8 @@ autoplot(cr)
 
 The grey points are every rank the judges actually gave, with point area
 showing how many judges sat there. The spread is per variable, which is
-what `tau_x` cannot tell you: the top three are unanimous and the bottom
-three are not.
+what `tau_x` cannot tell you: `debt_ratio` and the two null variables
+are nearly unanimous, and `prior_arrears` is spread across four ranks.
 
 ### Who disagrees, and by how much
 
@@ -356,15 +376,21 @@ worst first.
 
 ``` r
 item_consensus(cr)
-#> # A tibble: 6 × 3
-#>   judge                 weight tau_x
-#>   <chr>                  <dbl> <dbl>
-#> 1 model1:mdi:s1              1 0.8  
-#> 2 model1:mdi:s2              1 0.933
-#> 3 model1:mdi:s3              1 0.933
-#> 4 model1:permutation:s1      1 0.933
-#> 5 model1:permutation:s2      1 0.933
-#> 6 model1:permutation:s3      1 0.933
+#> # A tibble: 12 × 3
+#>    judge                       weight tau_x
+#>    <chr>                        <dbl> <dbl>
+#>  1 model1:permutation:s2:Fold1      1 0.524
+#>  2 model1:permutation:s1:Fold3      1 0.571
+#>  3 model1:permutation:s1:Fold2      1 0.667
+#>  4 model1:permutation:s2:Fold2      1 0.667
+#>  5 model1:permutation:s1:Fold1      1 0.762
+#>  6 model1:permutation:s2:Fold3      1 0.762
+#>  7 model1:mdi:s1:Fold1              1 0.857
+#>  8 model1:mdi:s1:Fold2              1 0.857
+#>  9 model1:mdi:s1:Fold3              1 0.857
+#> 10 model1:mdi:s2:Fold1              1 0.857
+#> 11 model1:mdi:s2:Fold2              1 0.857
+#> 12 model1:mdi:s2:Fold3              1 0.857
 ```
 
 `judge_weights()` turns that into votes. `by = "method"` lets you hand
@@ -374,16 +400,30 @@ agreement with the rest of the panel.
 
 ``` r
 round(judge_weights(J, by = "reliability"), 3)
-#> model1:permutation:s1         model1:mdi:s1 model1:permutation:s2 
-#>                 1.009                 0.953                 1.009 
-#>         model1:mdi:s2 model1:permutation:s3         model1:mdi:s3 
-#>                 1.009                 1.009                 1.009
+#> model1:permutation:s1:Fold1         model1:mdi:s1:Fold1 
+#>                       1.019                       1.040 
+#> model1:permutation:s1:Fold2         model1:mdi:s1:Fold2 
+#>                       0.968                       1.040 
+#> model1:permutation:s1:Fold3         model1:mdi:s1:Fold3 
+#>                       0.895                       1.040 
+#> model1:permutation:s2:Fold1         model1:mdi:s2:Fold1 
+#>                       0.900                       1.040 
+#> model1:permutation:s2:Fold2         model1:mdi:s2:Fold2 
+#>                       0.978                       1.040 
+#> model1:permutation:s2:Fold3         model1:mdi:s2:Fold3 
+#>                       0.999                       1.040
 ```
 
-Reliability weighting sharpens the consensus around the majority, which
-is a choice to make deliberately rather than by default. It makes a lone
-dissenter quieter, and sometimes the lone dissenter is the one that is
-right.
+Look at which judges reliability weighting rewards. Every impurity judge
+gets 1.040 and every permutation judge gets less, because the impurity
+judges agree with each other perfectly and agreement with the panel is
+what the weight measures. So the weighting would amplify the six judges
+carrying the cardinality bias and quieten the six that do not, and it
+would do it while looking like a principled correction.
+
+That is the warning worth taking from this section rather than the
+syntax. It makes a lone dissenter quieter, and here the dissenters are
+the ones that are right.
 
 ### One panel, or two panels stuck together
 
@@ -394,35 +434,64 @@ group's centre is the Kemeny median of its own members and is therefore
 a ranking you can report.
 
 ``` r
-judge_clusters(J)
+het <- judge_clusters(J)
+het
 #> <judge_clusters>
-#>   judges    : 6  
-#>   variables : 6 
-#>   clusters  : 2 (silhouette 0.75, p = 0.04 against one population) 
+#>   judges    : 12  
+#>   variables : 7 
+#>   clusters  : 2 (silhouette 0.696, p = 0.005 against one population) 
 #>   start     : enumerated medoids 
 #> 
-#> # A tibble: 6 × 3
-#>   judge                 cluster silhouette
-#>   <chr>                   <int>      <dbl>
-#> 1 model1:permutation:s1       1        1  
-#> 2 model1:permutation:s2       1        1  
-#> 3 model1:permutation:s3       1        1  
-#> 4 model1:mdi:s1               2        0.5
-#> 5 model1:mdi:s2               2        0.5
-#> 6 model1:mdi:s3               2        0.5
+#> # A tibble: 12 × 3
+#>    judge                       cluster silhouette
+#>    <chr>                         <int>      <dbl>
+#>  1 model1:permutation:s1:Fold1       1      0.475
+#>  2 model1:permutation:s1:Fold2       1      0.42 
+#>  3 model1:permutation:s1:Fold3       1      0.25 
+#>  4 model1:permutation:s2:Fold1       1      0.431
+#>  5 model1:permutation:s2:Fold2       1      0.5  
+#>  6 model1:permutation:s2:Fold3       1      0.275
+#>  7 model1:mdi:s1:Fold1               2      1    
+#>  8 model1:mdi:s1:Fold2               2      1    
+#>  9 model1:mdi:s1:Fold3               2      1    
+#> 10 model1:mdi:s2:Fold1               2      1    
+#> 11 model1:mdi:s2:Fold2               2      1    
+#> 12 model1:mdi:s2:Fold3               2      1    
 #> 
 #> Group consensus:
-#>           income debt_ratio late_count age balance tenure
-#> cluster_1      1          2          3   4       5      6
-#> cluster_2      1          2          3   4       6      5
+#>           income bureau_score debt_ratio employment_yrs prior_arrears
+#> cluster_1      3            4          2              5             1
+#> cluster_2      2            3          1              5             4
+#>           credit_lines age
+#> cluster_1            6   7
+#> cluster_2            7   6
 ```
 
-The seam falls exactly along the method axis, permutation against
-impurity, and the test rejects a single population at `p = 0.04`.
-Reading the two group consensuses is what makes the finding usable: they
-differ only in the order of `balance` and `tenure`, which are the two
-variables with no effect. The panel does divide, and it divides over
-nothing that matters.
+The seam falls exactly along the method axis, and the test rejects a
+single population at `p = 0.005`. It is worth checking that it is the
+method and not something else, since the panel has three axes in it:
+
+``` r
+provenance <- attr(J, "provenance")
+table(method = provenance$method, cluster = het$cluster)
+#>              cluster
+#> method        1 2
+#>   mdi         0 6
+#>   permutation 6 0
+table(fold = provenance$resample, cluster = het$cluster)
+#>        cluster
+#> fold    1 2
+#>   Fold1 2 2
+#>   Fold2 2 2
+#>   Fold3 2 2
+```
+
+Six and six on the method, two and two on every fold. Reading the two
+group consensuses is what makes the finding usable: permutation puts
+`prior_arrears` first, where the truth puts it, and impurity puts it
+fourth. The panel divides, and unlike the tie in the consensus this
+division is not about a detail. It is about the largest effect in the
+data.
 
 The hard part of this function is not finding groups, it is refusing to
 find them. Silhouette width on its own splits a homogeneous panel of six
@@ -446,17 +515,18 @@ rank_confsets(cr, n_boot = 500)
 #> <rank_confsets>
 #>   replicates : 500 ( quick )
 #>   level      : 0.95 
-#>   resampled  : 6 judges, with replacement 
+#>   resampled  : 12 judges, with replacement 
 #> 
-#> # A tibble: 6 × 4
-#>   variable    rank lower upper
-#>   <chr>      <int> <int> <int>
-#> 1 income         1     1     1
-#> 2 debt_ratio     2     2     2
-#> 3 late_count     3     3     3
-#> 4 age            4     4     4
-#> 5 balance        5     5     6
-#> 6 tenure         5     4     6
+#> # A tibble: 7 × 4
+#>   variable        rank lower upper
+#>   <chr>          <int> <int> <int>
+#> 1 debt_ratio         1     1     2
+#> 2 income             2     2     3
+#> 3 prior_arrears      2     1     4
+#> 4 bureau_score       4     3     4
+#> 5 employment_yrs     5     5     5
+#> 6 age                6     6     7
+#> 7 credit_lines       7     6     7
 ```
 
 `type = "data"` resamples the rows, refits every model and rebuilds the
@@ -468,29 +538,32 @@ the recipe to rebuild.
 ``` r
 set.seed(7)
 cb <- rank_confsets(cr, type = "data")
-#> Data bootstrap: 50 replicates at about 0.96 s each, roughly 48 seconds.
 cb
 #> <rank_confsets>
 #>   replicates : 50 ( quick )
 #>   level      : 0.95 
-#>   resampled  : 400 rows, with replacement; the panel is rebuilt on each 
+#>   resampled  : 800 rows, with replacement; the panel is rebuilt on each 
 #> 
-#> # A tibble: 6 × 4
-#>   variable    rank lower upper
-#>   <chr>      <int> <int> <int>
-#> 1 income         1     1     1
-#> 2 debt_ratio     2     2     3
-#> 3 late_count     3     2     3
-#> 4 age            4     4     6
-#> 5 balance        5     4     6
-#> 6 tenure         5     4     6
+#> # A tibble: 7 × 4
+#>   variable        rank lower upper
+#>   <chr>          <int> <int> <int>
+#> 1 debt_ratio         1     1     2
+#> 2 income             2     1     4
+#> 3 prior_arrears      2     3     5
+#> 4 bureau_score       4     2     6
+#> 5 employment_yrs     5     3     5
+#> 6 age                6     5     6
+#> 7 credit_lines       7     6     7
 ```
 
 The two disagree, and the disagreement is the lesson. Resampling the
-judges says `debt_ratio` is certainly second and `late_count` certainly
-third. Resampling the data says the sample does not order that pair at
-all, and that the three noise variables are somewhere in the bottom half
-with no ordering among them.
+judges puts `prior_arrears` in `[1, 4]` and pins `employment_yrs` to
+exactly 5. Resampling the data moves `prior_arrears` to `[3, 5]`, an
+interval that contains neither its consensus rank of 2 nor its true rank
+of 1, and widens `bureau_score` to `[2, 6]`. An interval need not
+contain the rank it sits beside: the consensus is computed once on the
+observed panel and the interval is computed over rebuilt ones, and when
+the two disagree it is the sample talking.
 
 This gap is not particular to the example. Measured over 300 replicates
 per cell, a nominal 95% set from the data bootstrap covered between
@@ -515,24 +588,25 @@ across the replicates.
 
 ``` r
 prob_topk(cb, k = 4)
-#> # A tibble: 6 × 2
-#>   variable   probability
-#>   <chr>            <dbl>
-#> 1 debt_ratio        1   
-#> 2 income            1   
-#> 3 late_count        1   
-#> 4 age               0.56
-#> 5 tenure            0.32
-#> 6 balance           0.2
+#> # A tibble: 7 × 2
+#>   variable       probability
+#>   <chr>                <dbl>
+#> 1 debt_ratio            1   
+#> 2 income                1   
+#> 3 bureau_score          0.92
+#> 4 prior_arrears         0.78
+#> 5 employment_yrs        0.36
+#> 6 age                   0   
+#> 7 credit_lines          0
 ```
 
-Three variables the data will not keep out of the top four, and three
-that split the fourth slot between them. `age` takes it more often than
-the other two and still not often enough to be claimed. These
-probabilities are conservative in the middle of their range and accurate
-at the ends: a variable reported at 0.44 is really in the top `k` about
-56% of the time, and one reported at 0.98 is there 98% of the time. They
-understate rather than overstate, which is the direction to want.
+Two variables the data will not keep out of the top four, one at 0.92,
+and `prior_arrears` at 0.78 despite being the largest effect there is.
+These probabilities are conservative in the middle of their range and
+accurate at the ends: a variable reported at 0.44 is really in the top
+`k` about 56% of the time, and one reported at 0.98 is there 98% of the
+time. They understate rather than overstate, which is the direction to
+want.
 
 `rank_select()` keeps the variables whose entire interval clears a
 threshold. This is the function to reach for when someone is going to
@@ -540,29 +614,42 @@ act on the answer.
 
 ``` r
 rank_select(cb, threshold = 3)
-#> [1] "income"     "debt_ratio" "late_count"
+#> [1] "debt_ratio"
 rank_select(cb, threshold = 5)
-#> [1] "income"     "debt_ratio" "late_count"
+#> [1] "debt_ratio"     "income"         "prior_arrears"  "employment_yrs"
 ```
 
-It returns the three signal variables and nothing else, and loosening
-the threshold from 3 to 5 does not buy a fourth. That is the intended
-behaviour: the rule is deliberately conservative, and the calibration
-study says at most 3% of its selections are undeserved, and none at all
-at the thresholds that make the strongest claim, while it selects
-between a third and a half of the variables that did deserve selection.
+At a threshold of 3 it returns one variable. At 5 it returns four, and
+they are four of the five that genuinely matter. It never returns `age`
+or `credit_lines` at any threshold, which is the property that counts:
+the calibration study says at most 3% of its selections are undeserved,
+and none at all at the thresholds that make the strongest claim, while
+it selects between a third and a half of the variables that did deserve
+selection.
 
 Read a short list as "these I can defend", not as "these are the ones
 that matter". If it returns nothing, that is an answer.
 
 ### What the example showed
 
-The panel recovered the true ordering of the signal, refused to order
-the noise, found the seam between the two importance methods, reported
-that the seam was about nothing that matters, and selected exactly the
-three variables that deserved selection. None of those five statements
-can be made from a single ranking produced by a single method on a
-single fit.
+Five things, and they are not all comfortable.
+
+The panel refused to order the two variables that have no order, at
+every threshold and in both bootstraps. It found the seam, and the seam
+was the method rather than the seed or the fold. It declined to separate
+`prior_arrears` from `income` rather than inventing a winner. Those
+three are the package working.
+
+The other two are the reason to keep reading past the consensus. The
+reported ordering is wrong at the top, because the largest effect in the
+data is one that half the panel systematically underrates and averaging
+did not fix. And reliability weighting, applied without looking, would
+have made it worse by giving the biased half more of the vote for being
+self-consistent.
+
+None of those five statements can be made from a single ranking produced
+by a single method on a single fit. The last two cannot be made from a
+consensus either, without the tools that take it apart.
 
 ## The theory underneath
 
@@ -661,13 +748,15 @@ implementations measures how much the answer depends on those choices. A
 bias that all the judges share passes through the consensus untouched
 and comes out looking like agreement.
 
-The example above is deliberately mild about this: `late_count` is a
-small count and impurity importance is biased against it, and the panel
-caught the problem only because it contained a method that does not
-share the bias. `vignette("credit-scoring")` shows the same mechanism
-doing real damage. Had every judge been an impurity judge, the consensus
-would have been narrow, confident and wrong in the same direction
-throughout.
+The example above is not mild about this. `prior_arrears` is a small
+count and impurity importance is biased against it, and the panel caught
+the problem only because it contained a method that does not share the
+bias. Half a panel was enough to see the bias and not enough to correct
+it, which is why the reported consensus still cannot separate the
+largest effect in the data from the fourth largest. Had every judge been
+an impurity judge, the consensus would have been narrow, confident and
+wrong in the same direction throughout, and reliability weighting would
+have called that agreement a reason for confidence.
 
 The backends also score on the data you hand them, so they are in-sample
 unless you pass a holdout set or build the panel over `resamples`.
