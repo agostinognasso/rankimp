@@ -7,5 +7,4 @@
 ^\.DS_Store$
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^simulations-output$
 ^cran-comments\.md$
