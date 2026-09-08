@@ -44,7 +44,7 @@ A named numeric vector of positive weights, one per judge.
 
 - `"reliability"`: a judge's weight grows with its agreement with the
   rest of the panel: \\w_k = (1 + \bar\tau_k)/2\\, where \\\bar\tau_k\\
-  is the mean Emond–Mason \\\tau_x\\ correlation between judge \\k\\ and
+  is the mean Emond-Mason \\\tau_x\\ correlation between judge \\k\\ and
   every other judge, computed with
   [`ConsRank::tau_x()`](https://rdrr.io/pkg/ConsRank/man/tau_x.html).
   Weights are normalised to mean 1, and floored at machine epsilon so

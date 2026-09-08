@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rankimp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,12 +43,22 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.0.0" id="rankimp-100">rankimp 1.0.0<a class="anchor" aria-label="anchor" href="#rankimp-100"></a></h2>
+<p>First stable release. The interface is settled and breaking changes from here go through a deprecation cycle.</p>
+<div class="section level3">
+<h3 id="new-1-0-0">New<a class="anchor" aria-label="anchor" href="#new-1-0-0"></a></h3>
+<ul><li>
+<code>applications</code> is a new dataset: 800 synthetic loan applications, seven predictors and a default indicator, shipped so that a question about a ranking has an answer to check against. The effects a ranking ought to recover are stored on the data frame as <code>attr(applications, "effects")</code>.</li>
+<li>It is built to make importance measures disagree, because a dataset on which they agree has nothing to say about a package for reconciling them. <code>bureau_score</code> and <code>income</code> come from one latent creditworthiness and correlate at 0.84, so the credit for the signal has to be divided somehow, and both measures below invert them relative to the truth. <code>prior_arrears</code> is the largest effect in the data and takes six distinct values: on a forest of 500 trees, impurity importance puts it fourth while permutation importance puts it first. Over the seven predictors the two agree with each other at a Kendall tau of 0.71, and against the truth at 0.59 for impurity and 0.88 for permutation.</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="rankimp-010">rankimp 0.1.0<a class="anchor" aria-label="anchor" href="#rankimp-010"></a></h2>
 <div class="section level3">
 <h3 id="new-0-1-0">New<a class="anchor" aria-label="anchor" href="#new-0-1-0"></a></h3>
 <ul><li><p><code><a href="../reference/importance_judges.html">importance_judges()</a></code> builds the panel from fitted models along the four axes of the roadmap, which are method, model, seed and resample, and records the provenance, raw scores and per-judge weights on the returned <code>judges</code> object, which <code><a href="../reference/consensus_rank.html">consensus_rank()</a></code> consumes weights and all. Supported engines: randomForest and ranger; resamples come from <code><a href="https://rsample.tidymodels.org/reference/vfold_cv.html" class="external-link">rsample::vfold_cv()</a></code> or <code><a href="https://rsample.tidymodels.org/reference/bootstraps.html" class="external-link">rsample::bootstraps()</a></code>, refit on the analysis set and scored on the assessment set.</p></li>
 <li><p>Importance backends: <code><a href="../reference/importance_backends.html">importance_permutation()</a></code>, <code><a href="../reference/importance_backends.html">importance_mdi()</a></code> and <code><a href="../reference/importance_backends.html">importance_loco()</a></code> are implemented natively against the supported engines; <code><a href="../reference/importance_backends.html">importance_shap()</a></code> delegates to kernelshap. The originally planned SHAP backend, fastshap, was archived from CRAN on 2026-05-27 (and vip is gone too), so kernelshap is the dependency of record.</p></li>
-<li><p><code><a href="../reference/judge_weights.html">judge_weights()</a></code> expands method weights over a panel, or weighs each judge by its mean Emond–Mason <code>tau_x</code> agreement with the rest of the panel (<code>by = "reliability"</code>).</p></li>
+<li><p><code><a href="../reference/judge_weights.html">judge_weights()</a></code> expands method weights over a panel, or weighs each judge by its mean Emond-Mason <code>tau_x</code> agreement with the rest of the panel (<code>by = "reliability"</code>).</p></li>
 <li><p><code><a href="../reference/rank_confsets.html">rank_confsets()</a></code> bootstraps the judges to put a rank confidence set around the consensus, <code><a href="../reference/prob_topk.html">prob_topk()</a></code> reports the probability that a variable belongs to the top <code>k</code>, and <code><a href="../reference/rank_select.html">rank_select()</a></code> keeps the variables whose whole interval clears a threshold. Resampling is done with multinomial judge weights rather than by rebuilding the panel, which <code>ConsRank</code> treats identically.</p></li>
 <li><p><code>rank_confsets(type = "data")</code> resamples the <em>rows</em> instead of the panel: every replicate draws the data with replacement, refits every model and rebuilds the panel from scratch. It answers the question the judge bootstrap cannot, namely whether the ranking would survive another sample, and it needs a panel from <code><a href="../reference/importance_judges.html">importance_judges()</a></code>, which now carries the recipe that built it. A replicate mirrors the recipe: a panel that judged out of sample keeps judging out of sample, on the rows the bootstrap left behind. A <code>resamples</code> axis is replaced by that in-bag/out-of-bag split, so each replicate votes with <code>models x methods</code> judges rather than <code>models x methods x V</code>. Replicates that fail, the usual case being a response class too rare to survive a draw, are dropped, counted and warned about instead of killing the run.</p></li>
 <li><p><code><a href="../reference/item_consensus.html">item_consensus()</a></code> scores every judge against the consensus, so that a low <code>tau_x</code> can be read as a split panel rather than as noise.</p></li>

@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">rankimp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -110,6 +110,19 @@
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"agostinognasso/rankimp"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="the-data-that-ships-with-it">The data that ships with it<a class="anchor" aria-label="anchor" href="#the-data-that-ships-with-it"></a>
+</h2>
+<p><code>applications</code> is 800 synthetic loan applications with the right answer attached: every predictor enters the outcome with a known coefficient, and the effects a ranking ought to recover are stored on the data frame itself.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/agostinognasso/rankimp" class="external-link">rankimp</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">applications</span>, <span class="st">"effects"</span><span class="op">)</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  prior_arrears     debt_ratio   bureau_score         income employment_yrs </span></span>
+<span><span class="co">#&gt;           0.90           0.78           0.62           0.45           0.22 </span></span>
+<span><span class="co">#&gt;   credit_lines            age </span></span>
+<span><span class="co">#&gt;           0.00           0.00</span></span></code></pre></div>
+<p>It is built so that importance measures disagree on it, since a dataset on which they agree would say nothing about a package for reconciling them. <code>bureau_score</code> and <code>income</code> come from one latent creditworthiness and correlate at 0.84; <code>prior_arrears</code> is the largest effect in the data and takes six distinct values, which is the case impurity importance handles badly. On a forest of 500 trees it puts <code>prior_arrears</code> fourth while permutation importance puts it first. See <code><a href="reference/applications.html">?applications</a></code>.</p>
+</div>
+<div class="section level2">
 <h2 id="a-worked-example-end-to-end">A worked example, end to end<a class="anchor" aria-label="anchor" href="#a-worked-example-end-to-end"></a>
 </h2>
 <p>The whole package on one problem, with the truth known in advance so that every answer can be checked.</p>
@@ -117,7 +130,7 @@
 <h3 id="the-data-and-what-is-true-in-it">The data, and what is true in it<a class="anchor" aria-label="anchor" href="#the-data-and-what-is-true-in-it"></a>
 </h3>
 <p>Six predictors. Three of them drive the outcome and three are noise, and one of the three that matter is a small count rather than a continuous variable, which is the case impurity importance handles badly.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/agostinognasso/rankimp" class="external-link">rankimp</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span>
@@ -142,7 +155,7 @@
 <h3 id="one-ranking-and-no-error-bar">One ranking, and no error bar<a class="anchor" aria-label="anchor" href="#one-ranking-and-no-error-bar"></a>
 </h3>
 <p>This is the standard report: fit a model, ask it once, print what it said.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="reference/importance_backends.html">importance_permutation</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">credit</span>, <span class="st">"risk"</span>, n_perm <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     income debt_ratio late_count        age    balance     tenure </span></span>
@@ -158,7 +171,7 @@
 </h3>
 <p>The two vectors above are not on a common scale, and no rescaling puts them on one, because they answer different questions. A permutation loss of 1.15 and an impurity decrease of 568 cannot be averaged.</p>
 <p>Ranks are the coarsest thing every method can be made to agree to produce. <code><a href="reference/importance_to_rank.html">importance_to_rank()</a></code> converts scores to ranks, and gives equal scores equal ranks instead of separating them by column order.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
 <span>  permutation <span class="op">=</span> <span class="op">{</span> <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>; <span class="fu"><a href="reference/importance_backends.html">importance_permutation</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">credit</span>, <span class="st">"risk"</span>, n_perm <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">}</span>,</span>
 <span>  mdi         <span class="op">=</span> <span class="fu"><a href="reference/importance_backends.html">importance_mdi</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
@@ -173,7 +186,7 @@
 <h3 id="a-panel-instead-of-a-ranking">A panel instead of a ranking<a class="anchor" aria-label="anchor" href="#a-panel-instead-of-a-ranking"></a>
 </h3>
 <p><code><a href="reference/importance_judges.html">importance_judges()</a></code> builds the panel. It runs the requested backends over every combination of four axes, methods, models, seeds and resamples, and returns a <code>judges</code> object: an integer matrix with one row per judge, plus the provenance and the raw scores.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">J</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/importance_judges.html">importance_judges</a></span><span class="op">(</span></span>
 <span>  <span class="va">fit</span>,</span>
 <span>  methods <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"permutation"</span>, <span class="st">"mdi"</span><span class="op">)</span>,</span>
@@ -201,7 +214,7 @@
 <p>The seed-1 judges are worth a second look. Refitting under seed 1 reproduces the forest fitted above, and <code>mdi:s1</code> therefore repeats the impurity ranking exactly. <code>permutation:s1</code> does not repeat the permutation ranking above: it puts <code>age</code> fourth where the ad hoc run put <code>balance</code> there. Permutation importance is itself a random estimator, and five shuffles are nowhere near enough to order three variables whose true importance is zero. Nothing was misconfigured; that is the size of the noise.</p>
 <p>Every axis multiplies. <code>seeds</code> measures the ensemble’s own noise, <code>fit_list</code> takes several fitted models when you want a consensus that holds across learners, and <code>resamples</code> takes an <code>rset</code> from rsample, refitting on each analysis set and scoring on the assessment set, so that the judges are out of sample.</p>
 <p>Provenance is kept, one row per judge:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">J</span>, <span class="st">"provenance"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 6 × 6</span></span>
 <span><span class="co">#&gt;   judge                 model  engine       method       seed resample</span></span>
@@ -217,7 +230,7 @@
 <h3 id="the-consensus">The consensus<a class="anchor" aria-label="anchor" href="#the-consensus"></a>
 </h3>
 <p><code><a href="reference/consensus_rank.html">consensus_rank()</a></code> returns the ranking with the smallest total Kemeny-Snell distance to all the judges.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/consensus_rank.html">consensus_rank</a></span><span class="op">(</span><span class="va">J</span><span class="op">)</span></span>
 <span><span class="va">cr</span></span>
 <span><span class="co">#&gt; &lt;consensus_rank&gt;</span></span>
@@ -237,7 +250,7 @@
 <span><span class="co">#&gt; 5 balance        5</span></span>
 <span><span class="co">#&gt; 6 tenure         5</span></span></code></pre></div>
 <p>The panel recovers the true ordering of the three signal variables, and it declines to order <code>balance</code> against <code>tenure</code>. That tie is the point. It appears because the Kemeny median here is not unique: three rankings attain the same minimum, and they disagree about exactly that pair.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cr</span><span class="op">$</span><span class="va">consensus_all</span></span>
 <span><span class="co">#&gt;      income debt_ratio late_count age balance tenure</span></span>
 <span><span class="co">#&gt; [1,]      1          2          3   4       5      6</span></span>
@@ -245,7 +258,7 @@
 <span><span class="co">#&gt; [3,]      1          2          3   4       6      5</span></span></code></pre></div>
 <p>Reporting the first of those three would not be neutral, because which one comes first depends on the order of your columns. The package averages each variable’s position over the whole optimal set and re-ranks with ties, and keeps the full set available.</p>
 <p><code>tau_x</code> is the mean Emond-Mason agreement between the consensus and the judges. Read it as how much agreement there was to summarise. It is not a p-value and not a goodness of fit.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">cr</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-plot_consensus-1.png" alt="" width="100%"></p>
@@ -255,7 +268,7 @@
 <h3 id="who-disagrees-and-by-how-much">Who disagrees, and by how much<a class="anchor" aria-label="anchor" href="#who-disagrees-and-by-how-much"></a>
 </h3>
 <p><code><a href="reference/item_consensus.html">item_consensus()</a></code> scores each judge against the reported consensus, worst first.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/item_consensus.html">item_consensus</a></span><span class="op">(</span><span class="va">cr</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 6 × 3</span></span>
 <span><span class="co">#&gt;   judge                 weight tau_x</span></span>
@@ -267,7 +280,7 @@
 <span><span class="co">#&gt; 5 model1:permutation:s2      1 0.933</span></span>
 <span><span class="co">#&gt; 6 model1:permutation:s3      1 0.933</span></span></code></pre></div>
 <p><code><a href="reference/judge_weights.html">judge_weights()</a></code> turns that into votes. <code>by = "method"</code> lets you hand impurity half a vote because you do not trust it here; <code>by = "reliability"</code> gives each judge a weight that grows with its agreement with the rest of the panel.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="reference/judge_weights.html">judge_weights</a></span><span class="op">(</span><span class="va">J</span>, by <span class="op">=</span> <span class="st">"reliability"</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt; model1:permutation:s1         model1:mdi:s1 model1:permutation:s2 </span></span>
 <span><span class="co">#&gt;                 1.009                 0.953                 1.009 </span></span>
@@ -279,7 +292,7 @@
 <h3 id="one-panel-or-two-panels-stuck-together">One panel, or two panels stuck together<a class="anchor" aria-label="anchor" href="#one-panel-or-two-panels-stuck-together"></a>
 </h3>
 <p>When agreement is low, the question is whether the disagreement is spread evenly or whether the panel has a seam in it. <code><a href="reference/judge_clusters.html">judge_clusters()</a></code> looks for the seam by k-medians in Kemeny-Snell space, where each group’s centre is the Kemeny median of its own members and is therefore a ranking you can report.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/judge_clusters.html">judge_clusters</a></span><span class="op">(</span><span class="va">J</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;judge_clusters&gt;</span></span>
 <span><span class="co">#&gt;   judges    : 6  </span></span>
@@ -309,7 +322,7 @@
 </h3>
 <p><code><a href="reference/rank_confsets.html">rank_confsets()</a></code> puts an interval around each variable’s rank. There are two bootstraps and they answer different questions.</p>
 <p><code>type = "judges"</code> resamples the panel. It measures how much the consensus depends on which sources of importance happened to be in it, and it refits nothing, so it is cheap.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/rank_confsets.html">rank_confsets</a></span><span class="op">(</span><span class="va">cr</span>, n_boot <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;rank_confsets&gt;</span></span>
@@ -327,10 +340,10 @@
 <span><span class="co">#&gt; 5 balance        5     5     6</span></span>
 <span><span class="co">#&gt; 6 tenure         5     4     6</span></span></code></pre></div>
 <p><code>type = "data"</code> resamples the rows, refits every model and rebuilds the whole panel, once per replicate. It measures whether the ordering would survive another dataset, which is usually the question a reader actually has. It needs a panel built by <code><a href="reference/importance_judges.html">importance_judges()</a></code>, because it needs the recipe to rebuild.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span></span>
 <span><span class="va">cb</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rank_confsets.html">rank_confsets</a></span><span class="op">(</span><span class="va">cr</span>, type <span class="op">=</span> <span class="st">"data"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Data bootstrap: 50 replicates at about 0.95 s each, roughly 48 seconds.</span></span>
+<span><span class="co">#&gt; Data bootstrap: 50 replicates at about 0.99 s each, roughly 49 seconds.</span></span>
 <span><span class="va">cb</span></span>
 <span><span class="co">#&gt; &lt;rank_confsets&gt;</span></span>
 <span><span class="co">#&gt;   replicates : 50 ( quick )</span></span>
@@ -348,7 +361,7 @@
 <span><span class="co">#&gt; 6 tenure         5     4     6</span></span></code></pre></div>
 <p>The two disagree, and the disagreement is the lesson. Resampling the judges says <code>debt_ratio</code> is certainly second and <code>late_count</code> certainly third. Resampling the data says the sample does not order that pair at all, and that the three noise variables are somewhere in the bottom half with no ordering among them.</p>
 <p>This gap is not particular to the example. Measured over 300 replicates per cell, a nominal 95% set from the data bootstrap covered between 0.966 and 0.998; the judge bootstrap covered between 0.582 and 0.929 and reached the nominal level in none of the six cells. Resampling a panel measures how much the methods argue with each other, which is a real quantity and a much smaller one than sampling variability.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">cb</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-plot_confsets-1.png" alt="" width="100%"></p>
 <p>Overlapping intervals are the honest way of saying two variables cannot be ordered on this evidence.</p>
@@ -357,7 +370,7 @@
 <h3 id="from-an-interval-to-a-decision">From an interval to a decision<a class="anchor" aria-label="anchor" href="#from-an-interval-to-a-decision"></a>
 </h3>
 <p><code><a href="reference/prob_topk.html">prob_topk()</a></code> reports how often each variable landed in the top <code>k</code> across the replicates.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/prob_topk.html">prob_topk</a></span><span class="op">(</span><span class="va">cb</span>, k <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 6 × 2</span></span>
 <span><span class="co">#&gt;   variable   probability</span></span>
@@ -370,7 +383,7 @@
 <span><span class="co">#&gt; 6 balance           0.2</span></span></code></pre></div>
 <p>Three variables the data will not keep out of the top four, and three that split the fourth slot between them. <code>age</code> takes it more often than the other two and still not often enough to be claimed. These probabilities are conservative in the middle of their range and accurate at the ends: a variable reported at 0.44 is really in the top <code>k</code> about 56% of the time, and one reported at 0.98 is there 98% of the time. They understate rather than overstate, which is the direction to want.</p>
 <p><code><a href="reference/rank_select.html">rank_select()</a></code> keeps the variables whose entire interval clears a threshold. This is the function to reach for when someone is going to act on the answer.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/rank_select.html">rank_select</a></span><span class="op">(</span><span class="va">cb</span>, threshold <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "income"     "debt_ratio" "late_count"</span></span>
 <span><span class="fu"><a href="reference/rank_select.html">rank_select</a></span><span class="op">(</span><span class="va">cb</span>, threshold <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
@@ -563,7 +576,7 @@
 <div class="section level2">
 <h2 id="status">Status<a class="anchor" aria-label="anchor" href="#status"></a>
 </h2>
-<p>Early development, and complete end to end.</p>
+<p>Version 1.0.0. Complete end to end, and not yet on CRAN. The <code>stable</code> badge is a statement about the interface rather than about the number of users: the names are settled and a breaking change from here goes through a deprecation cycle.</p>
 <table class="table">
 <colgroup>
 <col width="33%">

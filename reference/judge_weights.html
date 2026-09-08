@@ -13,7 +13,7 @@ returned vector plugs straight into consensus_rank()'s weights argument."></head
 
     <a class="navbar-brand me-2" href="../index.html">rankimp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -93,7 +93,7 @@ and expanded over the judges. Needs the provenance that
 <code><a href="importance_judges.html">importance_judges()</a></code> records, so it only works on a <code>judges</code> object.</p></li>
 <li><p><code>"reliability"</code>: a judge's weight grows with its agreement with the rest
 of the panel: \(w_k = (1 + \bar\tau_k)/2\), where \(\bar\tau_k\) is
-the mean Emond–Mason \(\tau_x\) correlation between judge \(k\) and
+the mean Emond-Mason \(\tau_x\) correlation between judge \(k\) and
 every other judge, computed with <code><a href="https://rdrr.io/pkg/ConsRank/man/tau_x.html" class="external-link">ConsRank::tau_x()</a></code>. Weights are
 normalised to mean 1, and floored at machine epsilon so that a judge in
 perfect disagreement with everyone is effectively, though not numerically,

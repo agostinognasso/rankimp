@@ -2,6 +2,8 @@
 
 ## All functions
 
+- [`applications`](applications.md) : Synthetic loan applications, with
+  the right answer attached
 - [`autoplot(`*`<consensus_rank>`*`)`](autoplot.consensus_rank.md) :
   Visualise a consensus ranking against the panel it came from
 - [`autoplot(`*`<judge_clusters>`*`)`](autoplot.judge_clusters.md) :

@@ -112,7 +112,7 @@ with the judge's model, engine, method, seed and resample), the raw
 
 Without `seeds` or `resamples` the supplied fits are used as they are,
 and data-dependent importances are in-sample. Axes combine as a full
-grid: models × methods × seeds × resamples.
+grid: models x methods x seeds x resamples.
 
 ## The recipe
 
