@@ -85,7 +85,7 @@ data argument, is read off the refit.
 
 Without \code{seeds} or \code{resamples} the supplied fits are used as they are, and
 data-dependent importances are in-sample. Axes combine as a full grid: models
-× methods × seeds × resamples.
+x methods x seeds x resamples.
 }
 
 \section{The recipe}{

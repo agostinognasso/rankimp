@@ -12,7 +12,7 @@
 #'   [importance_judges()] records, so it only works on a `judges` object.
 #' * `"reliability"`: a judge's weight grows with its agreement with the rest
 #'   of the panel: \eqn{w_k = (1 + \bar\tau_k)/2}, where \eqn{\bar\tau_k} is
-#'   the mean Emond–Mason \eqn{\tau_x} correlation between judge \eqn{k} and
+#'   the mean Emond-Mason \eqn{\tau_x} correlation between judge \eqn{k} and
 #'   every other judge, computed with [ConsRank::tau_x()]. Weights are
 #'   normalised to mean 1, and floored at machine epsilon so that a judge in
 #'   perfect disagreement with everyone is effectively, though not numerically,

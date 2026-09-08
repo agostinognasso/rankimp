@@ -62,7 +62,7 @@ importance_to_rank <- function(x, ties_method = c("min", "average", "first")) {
 #'
 #' Without `seeds` or `resamples` the supplied fits are used as they are, and
 #' data-dependent importances are in-sample. Axes combine as a full grid: models
-#' × methods × seeds × resamples.
+#' x methods x seeds x resamples.
 #'
 #' @section The recipe:
 #' The panel keeps the arguments that built it: the fits, the data, the target,

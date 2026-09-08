@@ -94,6 +94,30 @@ Not on CRAN yet. Install from GitHub:
 pak::pak("agostinognasso/rankimp")
 ```
 
+## The data that ships with it
+
+`applications` is 800 synthetic loan applications with the right answer
+attached: every predictor enters the outcome with a known coefficient,
+and the effects a ranking ought to recover are stored on the data frame
+itself.
+
+``` r
+library(rankimp)
+sort(attr(applications, "effects"), decreasing = TRUE)
+#>  prior_arrears     debt_ratio   bureau_score         income employment_yrs 
+#>           0.90           0.78           0.62           0.45           0.22 
+#>   credit_lines            age 
+#>           0.00           0.00
+```
+
+It is built so that importance measures disagree on it, since a dataset
+on which they agree would say nothing about a package for reconciling
+them. `bureau_score` and `income` come from one latent creditworthiness
+and correlate at 0.84; `prior_arrears` is the largest effect in the data
+and takes six distinct values, which is the case impurity importance
+handles badly. On a forest of 500 trees it puts `prior_arrears` fourth
+while permutation importance puts it first. See `?applications`.
+
 ## A worked example, end to end
 
 The whole package on one problem, with the truth known in advance so
@@ -423,7 +447,7 @@ the recipe to rebuild.
 ``` r
 set.seed(7)
 cb <- rank_confsets(cr, type = "data")
-#> Data bootstrap: 50 replicates at about 0.95 s each, roughly 48 seconds.
+#> Data bootstrap: 50 replicates at about 0.99 s each, roughly 49 seconds.
 cb
 #> <rank_confsets>
 #>   replicates : 50 ( quick )
@@ -647,7 +671,10 @@ Start with whichever question you have.
 
 ## Status
 
-Early development, and complete end to end.
+Version 1.0.0. Complete end to end, and not yet on CRAN. The `stable`
+badge is a statement about the interface rather than about the number of
+users: the names are settled and a breaking change from here goes
+through a deprecation cycle.
 
 | Phase | Content | State |
 |----|----|----|

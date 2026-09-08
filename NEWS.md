@@ -1,3 +1,25 @@
+# rankimp 1.0.0
+
+First stable release. The interface is settled and breaking changes from here
+go through a deprecation cycle.
+
+## New
+
+* `applications` is a new dataset: 800 synthetic loan applications, seven
+  predictors and a default indicator, shipped so that a question about a
+  ranking has an answer to check against. The effects a ranking ought to
+  recover are stored on the data frame as `attr(applications, "effects")`.
+* It is built to make importance measures disagree, because a dataset on which
+  they agree has nothing to say about a package for reconciling them.
+  `bureau_score` and `income` come from one latent creditworthiness and
+  correlate at 0.84, so the credit for the signal has to be divided somehow,
+  and both measures below invert them relative to the truth. `prior_arrears` is
+  the largest effect in the data and takes six distinct values: on a forest of
+  500 trees, impurity importance puts it fourth while permutation importance
+  puts it first. Over the seven predictors the two agree with each other at a
+  Kendall tau of 0.71, and against the truth at 0.59 for impurity and 0.88 for
+  permutation.
+
 # rankimp 0.1.0
 
 ## New
@@ -15,7 +37,7 @@
   backend, fastshap, was archived from CRAN on 2026-05-27 (and vip is gone too),
   so kernelshap is the dependency of record.
 * `judge_weights()` expands method weights over a panel, or weighs each judge
-  by its mean Emond–Mason `tau_x` agreement with the rest of the panel
+  by its mean Emond-Mason `tau_x` agreement with the rest of the panel
   (`by = "reliability"`).
 * `rank_confsets()` bootstraps the judges to put a rank confidence set around
   the consensus, `prob_topk()` reports the probability that a variable belongs
