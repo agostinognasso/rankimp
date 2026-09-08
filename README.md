@@ -7,7 +7,7 @@
 
 [![R-CMD-check](https://github.com/agostinognasso/rankimp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/agostinognasso/rankimp/actions/workflows/R-CMD-check.yaml)
 [![test-coverage](https://github.com/agostinognasso/rankimp/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/agostinognasso/rankimp/actions/workflows/test-coverage.yaml)
-[![coverage](https://img.shields.io/badge/coverage-%E2%89%A590%25-brightgreen)](https://github.com/agostinognasso/rankimp/actions/workflows/test-coverage.yaml)
+[![coverage](https://img.shields.io/badge/coverage-%E2%89%A591%25-brightgreen)](https://github.com/agostinognasso/rankimp/actions/workflows/test-coverage.yaml)
 [![R package
 version](https://img.shields.io/github/r-package/v/agostinognasso/rankimp?label=version)](https://github.com/agostinognasso/rankimp/blob/main/DESCRIPTION)
 [![R \>=
@@ -118,12 +118,33 @@ and takes six distinct values, which is the case impurity importance
 handles badly. On a forest of 500 trees it puts `prior_arrears` fourth
 while permutation importance puts it first. See `?applications`.
 
+`vignette("credit-scoring")` is the worked example on it, and it is
+worth reading for the result: the consensus of 24 judges gets the top of
+the ordering wrong, and the confidence sets are narrow and wrong along
+with it, because half the panel shares a bias and agreement is not
+correctness.
+
 ## A worked example, end to end
 
 The whole package on one problem, with the truth known in advance so
 that every answer can be checked.
 
 ### The data, and what is true in it
+
+This example builds its data rather than using `applications`, and the
+reason is worth a sentence. The panel below turns on the *seed* axis: it
+is meant to show that refitting the same forest under a different seed
+can move the answer. `applications` is 800 rows with well-separated
+effects and it is too stable for that. Built as a panel over seeds it
+returns two distinct rankings from six judges, one per method, every
+reliability weight comes back at 1 and every judge scores the same
+agreement, so three of the sections below would have nothing to show. It
+disagrees across *methods*, which is what it was designed for and what
+the vignette uses it for.
+
+What this section needs instead is a smaller, noisier problem with
+variables whose true importance is exactly zero, so that their ordering
+is pure noise and the panel can be seen refusing to order them.
 
 Six predictors. Three of them drive the outcome and three are noise, and
 one of the three that matter is a small count rather than a continuous
@@ -447,7 +468,7 @@ the recipe to rebuild.
 ``` r
 set.seed(7)
 cb <- rank_confsets(cr, type = "data")
-#> Data bootstrap: 50 replicates at about 0.99 s each, roughly 49 seconds.
+#> Data bootstrap: 50 replicates at about 0.96 s each, roughly 48 seconds.
 cb
 #> <rank_confsets>
 #>   replicates : 50 ( quick )
