@@ -7,8 +7,15 @@
 
 [![R-CMD-check](https://github.com/agostinognasso/rankimp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/agostinognasso/rankimp/actions/workflows/R-CMD-check.yaml)
 [![test-coverage](https://github.com/agostinognasso/rankimp/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/agostinognasso/rankimp/actions/workflows/test-coverage.yaml)
+[![coverage](https://img.shields.io/badge/coverage-%E2%89%A590%25-brightgreen)](https://github.com/agostinognasso/rankimp/actions/workflows/test-coverage.yaml)
+[![R package
+version](https://img.shields.io/github/r-package/v/agostinognasso/rankimp?label=version)](https://github.com/agostinognasso/rankimp/blob/main/DESCRIPTION)
+[![R \>=
+3.5](https://img.shields.io/badge/R-%3E%3D%203.5-blue)](https://cran.r-project.org/)
+[![License:
+MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
 
 Consensus ranking of variable importance, with the uncertainty attached.
@@ -416,7 +423,7 @@ the recipe to rebuild.
 ``` r
 set.seed(7)
 cb <- rank_confsets(cr, type = "data")
-#> Data bootstrap: 50 replicates at about 0.96 s each, roughly 48 seconds.
+#> Data bootstrap: 50 replicates at about 0.95 s each, roughly 48 seconds.
 cb
 #> <rank_confsets>
 #>   replicates : 50 ( quick )
