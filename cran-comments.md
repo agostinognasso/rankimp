@@ -27,13 +27,21 @@ upload form. The FTP route win-builder documents is refused from the network
 this was prepared on, which is a property of the network rather than of the
 package.
 
+win-builder, R Under development (2026-09-08 r90509 ucrt), Windows Server 2022:
+
+0 errors | 0 warnings | 1 note
+
+The note is the `CRAN incoming feasibility` one discussed below. Examples,
+tests, vignette re-building and both versions of the manual all came back OK.
+
 R-hub has not been used. The Windows R-devel cell it would have covered is in
 the GitHub Actions matrix above.
 
 ## Notes for the reviewer
 
-* A spell checker run over the Description flags `Kemeny`. It is correct: the
-  surname in the Kemeny median ranking.
+* The incoming check flags one word in the Description as possibly misspelled,
+  and it is correct. `Kemeny` (13:55) is the surname in the Kemeny median
+  ranking, after J. G. Kemeny, whose distance the consensus minimises.
 * `inst/simulations/` ships five scripts that are not run at check time and are
   not needed to use the package. They are the provenance of every quantitative
   claim in the documentation: the coverage, calibration and cluster-recovery
