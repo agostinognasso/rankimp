@@ -21,8 +21,12 @@ export(judge_weights)
 export(prob_topk)
 export(rank_confsets)
 export(rank_select)
-importFrom(ggplot2,.data)
-importFrom(ggplot2,autoplot)
+importFrom(ggplot2,
+  .data,
+  autoplot
+)
 importFrom(stats,setNames)
-importFrom(utils,capture.output)
-importFrom(utils,head)
+importFrom(utils,
+  capture.output,
+  head
+)
